@@ -1,13 +1,21 @@
 name: Windows release
 
 # Builds the standalone Windows distribution (portable zip + setup.exe installer) on a GitHub
-# Windows runner. Runs on every version tag (v1.0.0, v1.1.0, …) and on demand. On a tag the
-# files are attached to a GitHub Release, ready to send to clients.
+# Windows runner.
+#   * every push to main  → the rolling "latest" pre-release is updated (same download link forever)
+#   * every version tag   → a numbered release (v1.0.0, v1.1.0, …)
+#   * on demand           → Actions tab → "Windows release" → Run workflow
 
 on:
   push:
+    branches: [main]
     tags: ['v*']
+    paths-ignore: ['**.md', 'docs/**', '.gitattributes']
   workflow_dispatch:
+
+concurrency:
+  group: windows-release-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -74,6 +82,37 @@ jobs:
             C:\hvsr-dist\*.zip
             C:\hvsr-dist\*-setup-win-x64.exe
           if-no-files-found: error
+
+      - name: Publish the rolling "latest" build
+        if: github.ref == 'refs/heads/main'
+        shell: pwsh
+        run: |
+          # Stable file names so the download link never changes, then move the "latest" tag to this commit.
+          Copy-Item (Get-ChildItem C:\hvsr-dist\*-setup-win-x64.exe | Select-Object -First 1).FullName C:\hvsr-dist\QuakeLogic-HVSR-Studio-latest-setup-win-x64.exe
+          Copy-Item (Get-ChildItem C:\hvsr-dist\QuakeLogic-HVSR-Studio-*-win-x64.zip | Where-Object { $_.Name -notlike '*latest*' } | Select-Object -First 1).FullName C:\hvsr-dist\QuakeLogic-HVSR-Studio-latest-win-x64.zip
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f latest
+          git push -f origin latest
+
+      - name: Update the "latest" pre-release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest build (main)
+          prerelease: true
+          body: |
+            Automatically rebuilt from the newest commit on `main` (${{ github.sha }}).
+            Download links stay the same; the files are replaced on every change.
+
+            * **QuakeLogic-HVSR-Studio-latest-setup-win-x64.exe** — installer (recommended)
+            * **QuakeLogic-HVSR-Studio-latest-win-x64.zip** — portable build
+
+            For a numbered, frozen version use the releases tagged `v…`.
+          files: |
+            C:\hvsr-dist\QuakeLogic-HVSR-Studio-latest-setup-win-x64.exe
+            C:\hvsr-dist\QuakeLogic-HVSR-Studio-latest-win-x64.zip
 
       - name: Publish release
         if: startsWith(github.ref, 'refs/tags/v')
