@@ -49,7 +49,10 @@ STORAGE_DIRS = ["storage/app/private", "storage/app/public", "storage/framework/
 
 
 def log(message: str) -> None:
-    print(f"==> {message}", flush=True)
+    try:
+        print(f"==> {message}", flush=True)
+    except UnicodeEncodeError:  # legacy Windows console code pages
+        print(f"==> {message.encode('ascii', 'replace').decode('ascii')}", flush=True)
 
 
 def run(cmd: list[str], cwd: Path | None = None, env: dict | None = None) -> None:
@@ -261,6 +264,9 @@ def make_zip(stage: Path, out: Path) -> Path:
 
 
 def main() -> int:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", default="dist", help="output directory (default dist/)")
     parser.add_argument("--php-series", default="8.4")
@@ -274,7 +280,7 @@ def main() -> int:
     stage = out / "QuakeLogic-HVSR-Studio"
     downloads = out / "downloads"
     version = app_version()
-    log(f"QuakeLogic HVSR Studio {version} — Windows x64 distribution → {stage}")
+    log(f"QuakeLogic HVSR Studio {version} - Windows x64 distribution -> {stage}")
 
     stage_application(stage, args.skip_frontend)
     composer_install(stage)
