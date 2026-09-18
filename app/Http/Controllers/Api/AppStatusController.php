@@ -8,6 +8,7 @@ use App\Services\Engine\EngineClientInterface;
 use App\Services\Engine\EngineUnavailableException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class AppStatusController extends Controller
 {
@@ -29,7 +30,33 @@ class AppStatusController extends Controller
             'data_dir' => config('hvsr.data_dir'),
             'theme_default' => Setting::get('theme_default', 'system'),
             'php_version' => PHP_VERSION,
+            'heartbeat_age_s' => self::age('app.heartbeat'),
+            'goodbye_age_s' => self::age('app.goodbye'),
         ]);
+    }
+
+    /** The interface calls this every few seconds while a window is open; the launcher watches it. */
+    public function heartbeat(): JsonResponse
+    {
+        Cache::put('app.heartbeat', microtime(true), 120);
+        Cache::forget('app.goodbye');
+
+        return response()->json(['ok' => true]);
+    }
+
+    /** Sent by the interface when its window/tab is being closed. */
+    public function goodbye(): JsonResponse
+    {
+        Cache::put('app.goodbye', microtime(true), 120);
+
+        return response()->json(['ok' => true]);
+    }
+
+    private static function age(string $key): ?float
+    {
+        $stamp = Cache::get($key);
+
+        return is_numeric($stamp) ? round(microtime(true) - (float) $stamp, 1) : null;
     }
 
     public function settings(): JsonResponse

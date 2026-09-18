@@ -17,6 +17,8 @@ use App\Http\Controllers\Api\UploadController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/app/status', [AppStatusController::class, 'status']);
+Route::post('/app/heartbeat', [AppStatusController::class, 'heartbeat']);
+Route::post('/app/goodbye', [AppStatusController::class, 'goodbye']);
 Route::get('/settings', [AppStatusController::class, 'settings']);
 Route::put('/settings', [AppStatusController::class, 'updateSettings']);
 

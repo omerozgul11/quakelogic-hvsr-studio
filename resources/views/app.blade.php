@@ -7,6 +7,12 @@
     <meta name="color-scheme" content="light dark">
     <title>QuakeLogic HVSR Studio</title>
     <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#f26522">
+    <meta name="application-name" content="QuakeLogic HVSR Studio">
     <script>
         (function () {
             try {

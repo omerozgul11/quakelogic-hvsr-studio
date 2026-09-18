@@ -35,6 +35,8 @@ WizardStyle=modern
 DisableProgramGroupPage=yes
 LicenseFile={#StageDir}\LICENSE
 UninstallDisplayName=QuakeLogic HVSR Studio
+UninstallDisplayIcon={app}\public\app.ico
+SetupIconFile={#StageDir}\public\app.ico
 ChangesEnvironment=no
 
 [Languages]
@@ -55,11 +57,11 @@ Name: "{app}\storage\framework\sessions"
 Name: "{app}\storage\framework\views"
 
 [Icons]
-Name: "{group}\QuakeLogic HVSR Studio"; Filename: "{app}\HVSR Studio.vbs"; WorkingDir: "{app}"; IconFilename: "{app}\public\favicon.ico"; Comment: "Start QuakeLogic HVSR Studio"
-Name: "{group}\HVSR Studio (console mode)"; Filename: "{app}\HVSR Studio.bat"; WorkingDir: "{app}"; IconFilename: "{app}\public\favicon.ico"; Comment: "Start with a console window for troubleshooting"
+Name: "{group}\QuakeLogic HVSR Studio"; Filename: "{app}\HVSR Studio.vbs"; WorkingDir: "{app}"; IconFilename: "{app}\public\app.ico"; Comment: "Start QuakeLogic HVSR Studio"
+Name: "{group}\HVSR Studio (console mode)"; Filename: "{app}\HVSR Studio.bat"; WorkingDir: "{app}"; IconFilename: "{app}\public\app.ico"; Comment: "Start with a console window for troubleshooting"
 Name: "{group}\HVSR Studio User Guide"; Filename: "{app}\docs\user-guide.md"
 Name: "{group}\Uninstall QuakeLogic HVSR Studio"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\QuakeLogic HVSR Studio"; Filename: "{app}\HVSR Studio.vbs"; WorkingDir: "{app}"; IconFilename: "{app}\public\favicon.ico"; Tasks: desktopicon
+Name: "{autodesktop}\QuakeLogic HVSR Studio"; Filename: "{app}\HVSR Studio.vbs"; WorkingDir: "{app}"; IconFilename: "{app}\public\app.ico"; Tasks: desktopicon
 
 [Run]
 Filename: "{tmp}\vc_redist.x64.exe"; Parameters: "/install /quiet /norestart"; StatusMsg: "Installing Microsoft Visual C++ runtime..."; Check: VCRedistNeeded; Flags: waituntilterminated

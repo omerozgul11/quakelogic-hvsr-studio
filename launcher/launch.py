@@ -273,9 +273,23 @@ def open_app_window(url: str, data_dir: Path, log) -> subprocess.Popen | None:
         return None
     profile = data_dir / "app-window-profile"
     profile.mkdir(parents=True, exist_ok=True)
+    # Pre-seed the private profile so Chromium/Edge never shows first-run or "restore pages" screens.
+    try:
+        (profile / "First Run").touch(exist_ok=True)
+        prefs = profile / "Default" / "Preferences"
+        if not prefs.exists():
+            prefs.parent.mkdir(parents=True, exist_ok=True)
+            prefs.write_text(json.dumps({
+                "profile": {"exit_type": "Normal", "exited_cleanly": True, "default_content_setting_values": {"notifications": 2}},
+                "browser": {"has_seen_welcome_page": True, "check_default_browser": False},
+                "session": {"restore_on_startup": 5},
+            }), encoding="utf-8")
+    except OSError:
+        pass
     cmd = [str(browser), f"--app={url}", f"--user-data-dir={profile}", "--window-size=1500,950",
            "--no-first-run", "--no-default-browser-check", "--disable-session-crashed-bubble",
-           "--disable-features=Translate,msEdgeShoppingUI,msHub", "--disable-extensions",
+           "--disable-features=Translate,msEdgeShoppingUI,msHub,msFirstRunExperience,msImplicitSignin", "--disable-extensions",
+           "--no-service-autorun", "--disable-background-mode",
            "--class=QuakeLogicHVSRStudio"]
     kwargs: dict = dict(stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if IS_WINDOWS:
@@ -529,16 +543,44 @@ def main(argv: list[str] | None = None) -> int:
         else:
             print("\n  Close this window (or press Ctrl+C) to stop QuakeLogic HVSR Studio.\n", flush=True)
 
+        # Lifecycle: the interface sends a heartbeat every few seconds while a window is open.
+        # The services stop once heartbeats stop (or a "goodbye" arrives and no new heartbeat
+        # follows). The browser process itself is not trusted: Edge/Chrome may hand the window
+        # over to another process and exit immediately on a fresh profile.
         stop_requested = threading.Event()
         signal.signal(signal.SIGTERM, lambda *_: stop_requested.set())
+        opened_at = time.monotonic()
+        seen_heartbeat = False
+        last_check = 0.0
         while not stop_requested.is_set():
             time.sleep(1)
-            if window_proc is not None and window_proc.poll() is not None:
-                log("Application window closed")
-                break
             for proc, name in ((engine_proc, "processing engine"), (php_proc, "web server")):
                 if proc.poll() is not None:
                     raise RuntimeError(f"The {name} stopped unexpectedly (exit code {proc.returncode}). See data/logs.")
+            if args.no_browser:
+                continue
+            now = time.monotonic()
+            if now - last_check < 2:
+                continue
+            last_check = now
+            status = http_json(f"http://127.0.0.1:{web_port}/api/app/status") or {}
+            hb = status.get("heartbeat_age_s")
+            gb = status.get("goodbye_age_s")
+            if isinstance(hb, (int, float)) and hb < 10:
+                seen_heartbeat = True
+            if seen_heartbeat:
+                if hb is None or hb > 15:
+                    log("Application window closed (no heartbeat)")
+                    break
+                if isinstance(gb, (int, float)) and gb < 20 and hb > 6:
+                    log("Application window closed")
+                    break
+            elif now - opened_at > 120:
+                if window_proc is not None and window_proc.poll() is None:
+                    opened_at = now  # window still open but the page never connected; keep waiting
+                else:
+                    log("The interface never connected; stopping")
+                    break
     except KeyboardInterrupt:
         print()
         log("Shutting down")
