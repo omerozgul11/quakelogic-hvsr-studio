@@ -105,10 +105,9 @@ def find_composer() -> list[str]:
     for candidate in (ROOT / ".tools" / "composer.phar", ROOT / "composer.phar"):
         if candidate.exists():
             return [php, str(candidate)]
-    found = shutil.which("composer")
-    if found:
-        return [found]
-    raise RuntimeError("composer not found (place composer.phar in .tools/ or install Composer)")
+    # Always drive Composer through PHP + composer.phar (a .bat shim cannot be exec'd reliably on Windows).
+    phar = download("https://getcomposer.org/download/latest-stable/composer.phar", ROOT / ".tools" / "composer.phar")
+    return [php, str(phar)]
 
 
 def find_uv() -> str | None:
@@ -237,6 +236,7 @@ def install_python_deps(python_dir: Path, downloads: Path) -> None:
     site = python_dir / "Lib" / "site-packages"
     log("Installing Python dependencies (Windows wheels)")
     if IS_WINDOWS:
+        subprocess.run([str(python_dir / "python.exe"), "-m", "ensurepip", "--upgrade"], check=False)
         run([python_dir / "python.exe", "-m", "pip", "install", "--no-cache-dir", "--upgrade", "pip"])
         run([python_dir / "python.exe", "-m", "pip", "install", "--no-cache-dir", "--only-binary=:all:", "-r", lock])
         return
