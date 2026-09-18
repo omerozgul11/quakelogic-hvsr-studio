@@ -33,6 +33,53 @@ from pathlib import Path
 
 APP_ROOT = Path(__file__).resolve().parent.parent
 IS_WINDOWS = os.name == "nt"
+# Helper processes must never open console windows of their own (the hidden launcher has none).
+NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0) if IS_WINDOWS else 0
+LOG_FILE: Path | None = None
+
+
+def log(message: str) -> None:
+    """Print to the console (when there is one) and append to the launcher log file."""
+    line = f"[{time.strftime('%H:%M:%S')}] {message}"
+    try:
+        print(line, flush=True)
+    except (OSError, ValueError):
+        pass
+    if LOG_FILE is not None:
+        try:
+            with LOG_FILE.open("a", encoding="utf-8") as handle:
+                handle.write(line + "\n")
+        except OSError:
+            pass
+
+
+def set_log_file(path: Path) -> None:
+    global LOG_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    LOG_FILE = path
+
+
+def run_quiet(cmd: list[str], cwd: Path, env: dict[str, str] | None = None, timeout: float = 300) -> str:
+    """Run a helper command without a console window; raise RuntimeError with its output on failure."""
+    result = subprocess.run([str(c) for c in cmd], cwd=str(cwd), env=env, capture_output=True, text=True,
+                            timeout=timeout, creationflags=NO_WINDOW, encoding="utf-8", errors="replace")
+    output = (result.stdout or "") + (result.stderr or "")
+    for line in output.strip().splitlines()[-40:]:
+        log(f"  | {line}")
+    if result.returncode != 0:
+        tail = "\n".join(output.strip().splitlines()[-12:])
+        raise RuntimeError(f"`{Path(cmd[0]).name} {' '.join(cmd[1:3])}` failed (exit {result.returncode}):\n{tail}")
+    return output
+
+
+def has_console() -> bool:
+    if not IS_WINDOWS:
+        return True
+    try:
+        import ctypes
+        return bool(ctypes.windll.kernel32.GetConsoleWindow())
+    except Exception:  # noqa: BLE001
+        return True
 DEFAULT_WEB_PORT = 8090
 DEFAULT_ENGINE_PORT = 8765
 
@@ -79,7 +126,7 @@ def python_has_service(python: Path) -> bool:
         env = dict(os.environ, PYTHONPATH=str(APP_ROOT / "engine"))
         result = subprocess.run(
             [str(python), "-c", "import hvsr_service, hvsr_engine, numpy, scipy, obspy"],
-            capture_output=True, timeout=60, env=env,
+            capture_output=True, timeout=120, env=env, creationflags=NO_WINDOW,
         )
         return result.returncode == 0
     except (OSError, subprocess.SubprocessError):
@@ -171,7 +218,8 @@ def terminate(process: subprocess.Popen | None, name: str, log) -> None:
     log(f"Stopping {name} (pid {process.pid})")
     try:
         if IS_WINDOWS:
-            subprocess.run(["taskkill", "/PID", str(process.pid), "/T", "/F"], capture_output=True, check=False)
+            subprocess.run(["taskkill", "/PID", str(process.pid), "/T", "/F"], capture_output=True, check=False,
+                           creationflags=NO_WINDOW)
         else:
             process.terminate()
             try:
@@ -243,7 +291,7 @@ def open_app_window(url: str, data_dir: Path, log) -> subprocess.Popen | None:
 
 def notify_error(message: str) -> None:
     """Show start-up errors in a dialog when there is no console to read them in."""
-    if IS_WINDOWS and (sys.executable.lower().endswith("pythonw.exe") or os.environ.get("HVSR_QUIET")):
+    if IS_WINDOWS and (not has_console() or sys.executable.lower().endswith("pythonw.exe") or os.environ.get("HVSR_QUIET")):
         try:
             import ctypes
             ctypes.windll.user32.MessageBoxW(None, message, "QuakeLogic HVSR Studio", 0x10)
@@ -270,16 +318,15 @@ def user_data_root() -> Path:
     return Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local" / "share") / "quakelogic-hvsr-studio"
 
 
-def generate_app_key(php: Path) -> str:
-    result = subprocess.run([str(php), "artisan", "key:generate", "--show", "--no-interaction"],
-                            cwd=APP_ROOT, capture_output=True, text=True, check=True)
-    key = result.stdout.strip().splitlines()[-1].strip()
+def generate_app_key(php: Path, env: dict[str, str]) -> str:
+    output = run_quiet([str(php), "artisan", "key:generate", "--show", "--no-interaction"], APP_ROOT, env)
+    key = output.strip().splitlines()[-1].strip()
     if not key.startswith("base64:"):
         raise RuntimeError("Could not generate an application key")
     return key
 
 
-def ensure_env_file(php: Path, log) -> tuple[Path, dict[str, str]]:
+def ensure_env_file(php: Path, env: dict[str, str], log) -> tuple[Path, dict[str, str]]:
     """Return (env file path, extra environment overrides).
 
     When the application folder is writable (portable / per-user install) the
@@ -300,7 +347,7 @@ def ensure_env_file(php: Path, log) -> tuple[Path, dict[str, str]]:
         values = read_env_file(env_path)
         if not values.get("APP_KEY"):
             log("Generating application key")
-            subprocess.run([str(php), "artisan", "key:generate", "--force", "--no-interaction"], cwd=APP_ROOT, check=True)
+            run_quiet([str(php), "artisan", "key:generate", "--force", "--no-interaction"], APP_ROOT, env)
         return env_path, overrides
 
     user_root = user_data_root()
@@ -309,7 +356,7 @@ def ensure_env_file(php: Path, log) -> tuple[Path, dict[str, str]]:
     values = read_env_file(env_path)
     if not values.get("APP_KEY"):
         log(f"Application folder is read-only; keeping settings in {user_root}")
-        values["APP_KEY"] = generate_app_key(php)
+        values["APP_KEY"] = generate_app_key(php, env)
         env_path.write_text("".join(f"{k}={v}\n" for k, v in values.items()), encoding="utf-8")
     storage = user_root / "storage"
     for sub in ("app", "framework/cache/data", "framework/sessions", "framework/views", "logs"):
@@ -326,7 +373,31 @@ def ensure_env_file(php: Path, log) -> tuple[Path, dict[str, str]]:
 
 def run_setup(php: Path, env: dict[str, str], log) -> None:
     log("Preparing database and presets")
-    subprocess.run([str(php), "artisan", "hvsr:setup", "--no-interaction"], cwd=APP_ROOT, env=env, check=True)
+    run_quiet([str(php), "artisan", "hvsr:setup", "--no-interaction"], APP_ROOT, env)
+
+
+def php_environment(php: Path) -> dict[str, str]:
+    """Environment for every PHP process: our ini overrides + an absolute extension_dir for the bundled PHP.
+
+    PHP resolves a relative `extension_dir` against the current directory, not against php.exe,
+    so a generated ini pins it to the bundled `ext` folder. Both directories are handed to PHP
+    through PHP_INI_SCAN_DIR, which also reaches the `php -S` worker that `artisan serve` spawns.
+    """
+    env = dict(os.environ)
+    scan_dirs = [str(APP_ROOT / "launcher" / "php.d")]
+    ext_dir = php.parent / "ext"
+    if ext_dir.is_dir():
+        ini_dir = user_data_root() / "php.d"
+        try:
+            ini_dir.mkdir(parents=True, exist_ok=True)
+            (ini_dir / "hvsr-paths.ini").write_text(
+                f'; generated by the QuakeLogic HVSR Studio launcher\nextension_dir = "{ext_dir}"\n', encoding="utf-8")
+            scan_dirs.append(str(ini_dir))
+        except OSError:
+            pass
+    env["PHP_INI_SCAN_DIR"] = os.pathsep.join(scan_dirs)
+    env["PHP_CLI_SERVER_WORKERS"] = "6"
+    return env
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -339,31 +410,30 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--workers", type=int, default=None, help="engine worker threads")
     args = parser.parse_args(argv)
 
-    def log(message: str) -> None:
-        stamp = time.strftime("%H:%M:%S")
-        print(f"[{stamp}] {message}", flush=True)
-
-    print("QuakeLogic HVSR Studio — launcher")
-    print(f"Application root: {APP_ROOT}")
+    set_log_file(user_data_root() / "logs" / "launcher.log")
+    log("QuakeLogic HVSR Studio - launcher")
+    log(f"Application root: {APP_ROOT}")
+    log(f"Interpreter: {sys.executable}")
 
     php = find_php()
     if php is None:
         message = ("PHP was not found. Install PHP 8.3+ or place a bundled runtime in "
                    f"runtime/{platform_dir()}/php/. See docs/user-guide.md.")
-        print(f"ERROR: {message}")
+        log(f"ERROR: {message}")
         notify_error(message)
         return 2
     python = find_python()
     if python is None:
         message = ("No Python environment with the HVSR engine was found. Run scripts/setup-dev "
                    f"or place a bundled runtime in runtime/{platform_dir()}/python/.")
-        print(f"ERROR: {message}")
+        log(f"ERROR: {message}")
         notify_error(message)
         return 2
     log(f"PHP:    {php}")
     log(f"Python: {python}")
 
-    env_path, overrides = ensure_env_file(php, log)
+    php_env = php_environment(php)
+    env_path, overrides = ensure_env_file(php, php_env, log)
     dotenv = read_env_file(env_path)
     dotenv.update(overrides)
 
@@ -372,6 +442,7 @@ def main(argv: list[str] | None = None) -> int:
         data_dir = (APP_ROOT / data_dir).resolve()
     logs_dir = data_dir / "logs"
     logs_dir.mkdir(parents=True, exist_ok=True)
+    set_log_file(logs_dir / "launcher.log")
 
     preferred_web = args.port or url_port(dotenv.get("APP_URL"), DEFAULT_WEB_PORT)
     preferred_engine = args.engine_port or url_port(dotenv.get("HVSR_ENGINE_URL"), DEFAULT_ENGINE_PORT)
@@ -396,7 +467,7 @@ def main(argv: list[str] | None = None) -> int:
     engine_port = pick_port(preferred_engine if preferred_engine != web_port else preferred_engine + 1)
     token = secrets.token_urlsafe(24)
 
-    child_env = dict(os.environ)
+    child_env = dict(php_env)
     child_env.update(overrides)
     child_env.update({
         "HVSR_DATA_DIR": str(data_dir),
@@ -404,8 +475,6 @@ def main(argv: list[str] | None = None) -> int:
         "HVSR_ENGINE_URL": f"http://127.0.0.1:{engine_port}",
         "HVSR_ENGINE_TOKEN": token,
         "APP_URL": f"http://127.0.0.1:{web_port}",
-        "PHP_CLI_SERVER_WORKERS": "6",
-        "PHP_INI_SCAN_DIR": str(APP_ROOT / "launcher" / "php.d"),
         "PYTHONUNBUFFERED": "1",
         "PYTHONPATH": str(APP_ROOT / "engine"),
         "MPLBACKEND": "Agg",
@@ -413,9 +482,9 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         run_setup(php, child_env, log)
-    except subprocess.CalledProcessError as exc:
-        print(f"ERROR: database setup failed (exit {exc.returncode}).")
-        notify_error(f"Database setup failed (exit {exc.returncode}). See data/logs.")
+    except RuntimeError as exc:
+        log(f"ERROR: database setup failed: {exc}")
+        notify_error(f"Database setup failed.\n\n{exc}\n\nDetails: {LOG_FILE}")
         return 3
 
     engine_cmd = [str(python), "-m", "hvsr_service", "--host", "127.0.0.1", "--port", str(engine_port), "--token", token]
@@ -425,7 +494,7 @@ def main(argv: list[str] | None = None) -> int:
 
     popen_kwargs: dict = dict(stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=child_env)
     if IS_WINDOWS:
-        popen_kwargs["creationflags"] = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+        popen_kwargs["creationflags"] = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0) | NO_WINDOW
 
     engine_proc: subprocess.Popen | None = None
     php_proc: subprocess.Popen | None = None
@@ -474,13 +543,27 @@ def main(argv: list[str] | None = None) -> int:
         print()
         log("Shutting down")
     except RuntimeError as exc:
-        print(f"ERROR: {exc}")
-        notify_error(str(exc))
+        log(f"ERROR: {exc}")
+        notify_error(f"{exc}\n\nDetails: {LOG_FILE}")
         exit_code = 1
     finally:
         shutdown()
     return exit_code
 
 
+def entry() -> int:
+    """Never exit silently: any unexpected failure is logged and shown in a dialog."""
+    try:
+        return main()
+    except SystemExit:
+        raise
+    except BaseException as exc:  # noqa: BLE001
+        import traceback
+        details = traceback.format_exc()
+        log("FATAL: " + details)
+        notify_error(f"QuakeLogic HVSR Studio could not start.\n\n{type(exc).__name__}: {exc}\n\nDetails: {LOG_FILE}")
+        return 1
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(entry())
