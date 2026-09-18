@@ -4,7 +4,7 @@ import type { Data, Layout, Shape } from 'plotly.js';
 import PlotlyChart from './PlotlyChart.vue';
 import { JET, windowColor } from '@/utils/windowPalette';
 
-/** H/V versus time (GeoExplorer "H/V time graph"): one column per window, log frequency on y, jet colours. */
+/** H/V versus time (QLExplorer "H/V time graph"): one column per window, log frequency on y, jet colours. */
 interface Props {
     timesS: number[];
     frequency: number[];

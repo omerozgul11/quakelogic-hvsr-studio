@@ -69,7 +69,7 @@ overrides are then applied to every window regardless of the mode.
   ratio lies inside `[min_ratio, max_ratio]`. Each run of quiet samples is filled greedily with the
   longest possible windows, `min_length_s ≤ L ≤ max_length_s`, without overlap; leftovers shorter than
   `min_length_s` are dropped. This reproduces the "minimum/maximum window length + amplitude levels"
-  selection of field software such as GeoExplorer-HVSR.
+  selection of field software such as QLExplorer-HVSR.
 * **custom** — the user-supplied list `custom = [[start_s, end_s], …]` (windows drawn or repositioned
   by hand, any lengths). Custom windows may also be appended in the other two modes.
 

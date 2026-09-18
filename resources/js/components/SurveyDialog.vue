@@ -11,7 +11,7 @@ import Field from '@/components/ui/Field.vue';
 import NumberInput from '@/components/ui/NumberInput.vue';
 import { fmtDuration, fmtHz, fmtUtc } from '@/utils/format';
 
-/** GeoExplorer-style "Report generation" dialog: survey and place details, two photos, notes. */
+/** QLExplorer-style "Report generation" dialog: survey and place details, two photos, notes. */
 interface Props { open: boolean; analysisId: Ulid; recording: Recording | null; survey: Survey | null; generating?: boolean }
 const props = withDefaults(defineProps<Props>(), { generating: false });
 const emit = defineEmits<{ close: []; saved: [survey: Survey]; generate: [] }>();

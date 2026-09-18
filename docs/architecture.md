@@ -348,7 +348,7 @@ Light and dark themes via `.dark` on `<html>`, persisted in localStorage.
 * STA/LTA screening uses the engine's absolute-value STA/LTA with a 2 s STA default (see
   `docs/hvsr-algorithms.md` §3) — the SPA defaults match.
 
-## Parity additions (GeoExplorer-HVSR feature set) — contract
+## Parity additions (QLExplorer-HVSR feature set) — contract
 
 ### Windows (engine `params.windows`, used by `/hvsr/windows` and `/hvsr/analyze`)
 ```

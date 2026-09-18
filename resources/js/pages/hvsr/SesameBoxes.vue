@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { HvsrResult } from '@/api/types';
 
-/** GeoExplorer-style SESAME summary: Curve I–III (reliability), Peak I–VI (clarity), Overall. */
+/** QLExplorer-style SESAME summary: Curve I–III (reliability), Peak I–VI (clarity), Overall. */
 interface Props { sesame: NonNullable<HvsrResult['sesame']> }
 defineProps<Props>();
 const roman = ['I', 'II', 'III', 'IV', 'V', 'VI'];

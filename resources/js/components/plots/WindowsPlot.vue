@@ -12,7 +12,7 @@ interface Props {
     channels?: Partial<Record<ComponentKey, string>>;
     height?: number;
     loading?: boolean;
-    /** Hide the overlays of accepted windows to inspect the signal (GeoExplorer "Hide selected windows"). */
+    /** Hide the overlays of accepted windows to inspect the signal (QLExplorer "Hide selected windows"). */
     hideSelected?: boolean;
     /** Drag a box to draw a new window instead of zooming. */
     freeSelect?: boolean;

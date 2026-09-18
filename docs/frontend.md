@@ -98,7 +98,7 @@ npm run typecheck      # vue-tsc --noEmit
   `card` utility with dividers. Guided workflow: `stores/guide.ts` + `components/GuideWizard.vue`;
   in-app docs: `pages/Manual.vue` (`GET /api/docs/{doc}` rendered with `marked`).
 
-## GeoExplorer-parity views (2026-09-16)
+## QLExplorer-parity views (2026-09-16)
 
 * `utils/windowPalette.ts` — rainbow palette (blue→red in time order, `color_index`) shared by the
   waveform/window overlays, window tables and single-window H/V curves; `JET` colour scale for heat maps.

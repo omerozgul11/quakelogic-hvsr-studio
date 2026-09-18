@@ -168,7 +168,7 @@ const tabs = computed(() => [
     { key: 'model', label: 'Modelling' },
 ]);
 
-// ---- GeoExplorer-style plot options ----
+// ---- QLExplorer-style plot options ----
 const plotOpt = reactive(defaultHvsrPlotOptions());
 watch(() => plotOpt.showSingle, (v) => { if (v) void loadWindowCurves(); });
 const scale = reactive<{ freqOn: boolean; fmin: number | null; fmax: number | null; ratioOn: boolean; rmin: number | null; rmax: number | null; dbOn: boolean; dmin: number | null; dmax: number | null }>({ freqOn: false, fmin: 0.2, fmax: 50, ratioOn: false, rmin: 0, rmax: 10, dbOn: false, dmin: -50, dmax: 50 });

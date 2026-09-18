@@ -18,7 +18,7 @@ const zmax = computed(() => {
     for (const row of props.matrix) for (const v of row) if (v !== null && Number.isFinite(v) && v > m) m = v;
     return Math.max(1e-6, (m * props.maxPercent) / 100);
 });
-/** matrix is azimuth × frequency; draw frequency on y (log) and azimuth on x like GeoExplorer. */
+/** matrix is azimuth × frequency; draw frequency on y (log) and azimuth on x like QLExplorer. */
 const z = computed(() => props.frequency.map((_, fi) => props.matrix.map((row) => row[fi] ?? null)));
 const data = computed<Data[]>(() => {
     const out: Data[] = [{

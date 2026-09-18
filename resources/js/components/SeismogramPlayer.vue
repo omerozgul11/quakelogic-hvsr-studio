@@ -9,7 +9,7 @@ import { useToastStore } from '@/stores/toast';
 import { fmtDuration } from '@/utils/format';
 
 /**
- * Seismogram sonification player (GeoExplorer-style): the recorded samples are re-clocked at the
+ * Seismogram sonification player (QLExplorer-style): the recorded samples are re-clocked at the
  * "playback frequency" (e.g. 100 Hz data played at 1000 Hz = 10× faster) so that transients become
  * audible. Uses the Web Audio API only; nothing leaves the machine.
  */

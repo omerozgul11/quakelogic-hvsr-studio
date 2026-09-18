@@ -4,7 +4,7 @@ import type { Data, Layout } from 'plotly.js';
 import PlotlyChart from './PlotlyChart.vue';
 import type { CurveSet } from '@/api/types';
 
-/** Experimental H/V (mean + dashed σ curves) versus the synthetic curve of a ground model (GeoExplorer modelling view). */
+/** Experimental H/V (mean + dashed σ curves) versus the synthetic curve of a ground model (QLExplorer modelling view). */
 interface Props {
     frequency: number[];
     curve: CurveSet | null;
