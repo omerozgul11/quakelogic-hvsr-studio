@@ -6,3 +6,4 @@
 *.pdf binary
 *.mseed binary
 *.ico binary
+*.vbs text eol=crlf

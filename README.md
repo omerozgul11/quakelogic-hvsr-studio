@@ -22,13 +22,19 @@ analysis of three-component ambient-vibration recordings.
 
 No account, login, license key, activation or cloud connection. Binds to 127.0.0.1 only.
 
+## Download (Windows)
+
+Ready-made builds are published on the GitHub **Releases** page of this repository: the
+`…-setup-win-x64.exe` installer (recommended) or the portable `…-win-x64.zip`. Both are produced
+automatically by the `Windows release` workflow from a version tag.
+
 ## Quick start (Windows)
 
 1. Run the installer `QuakeLogic-HVSR-Studio-<version>-setup-win-x64.exe` (or unzip the
    portable zip anywhere).
-2. Start **QuakeLogic HVSR Studio** from the Start menu (or double-click `HVSR Studio.bat`).
-   The launcher starts the processing engine and the web server, then opens your browser at
-   `http://127.0.0.1:8090/`. Close the launcher window to stop the application.
+2. Start **QuakeLogic HVSR Studio** from the Start menu (or double-click `HVSR Studio.vbs`).
+   The application opens in its own window; close that window to stop it. (`HVSR Studio.bat`
+   starts it with a visible console for troubleshooting.)
 3. Create a project, import the synthetic examples from `examples/` and follow
    `docs/user-guide.md`.
 

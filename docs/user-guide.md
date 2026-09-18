@@ -55,13 +55,16 @@ Install PHP 8.4 CLI, Composer, Node.js 22+ and Python 3.12, then run `scripts\se
 
 ## 2. Starting and stopping
 
-* **Windows:** Start menu → *QuakeLogic HVSR Studio*, or double-click `HVSR Studio.bat`.
+* **Windows:** Start menu → *QuakeLogic HVSR Studio*, or double-click `HVSR Studio.vbs`
+  (`HVSR Studio.bat` does the same but keeps a console window open, useful for troubleshooting).
 * **Linux:** `launcher/hvsr-studio.sh` — **macOS:** double-click `launcher/hvsr-studio.command`.
 
-The launcher window shows the start-up sequence (database check, processing engine, web server)
-and then opens your default browser at `http://127.0.0.1:8090/`. Keep the launcher window open
-while you work; **closing it (or pressing Ctrl+C) stops the application**. If the application is
-already running, starting the launcher again simply opens a new browser tab.
+The application opens in its **own window** (no browser tabs or address bar) with the QuakeLogic
+icon; it uses the Chromium engine of Microsoft Edge, which is part of Windows 10/11 (Chrome or
+Chromium on macOS/Linux). **Closing that window stops the application.** If no such browser is
+installed, the interface opens in your default web browser instead and the launcher window must
+be closed to stop the application. Start with `--browser` to force the browser mode. If the
+application is already running, starting it again simply opens another window.
 
 Both services listen on `127.0.0.1` only — other computers on your network cannot reach them.
 If port 8090 or 8765 is busy, the launcher picks the next free port and prints the address.

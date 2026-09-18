@@ -7,8 +7,11 @@
 3. runs `php artisan hvsr:setup` (SQLite migrations + built-in presets, idempotent);
 4. starts the processing engine (`python -m hvsr_service`) with a per-session shared token;
 5. starts the web server (`php artisan serve`) bound to 127.0.0.1;
-6. waits for both health checks, opens the browser, and stops both processes when the launcher exits.
+6. waits for both health checks, opens the interface in a dedicated application window (Edge/Chrome/Chromium
+   `--app` mode with a private profile; falls back to the default browser), and stops both processes when that
+   window is closed or the launcher exits.
 
-Wrappers: `HVSR Studio.bat` (Windows, repo/dist root), `launcher/hvsr-studio.sh` (Linux),
-`launcher/hvsr-studio.command` (macOS). Options: `--port`, `--engine-port`, `--no-browser`, `--debug`, `--workers`.
+Wrappers: `HVSR Studio.vbs` (Windows, hidden console, via pythonw.exe), `HVSR Studio.bat` (Windows, console), `launcher/hvsr-studio.sh` (Linux),
+`launcher/hvsr-studio.command` (macOS). Options: `--port`, `--engine-port`, `--browser` (tab instead of app window), `--no-browser`, `--debug`, `--workers`.
+Environment: `HVSR_BROWSER` = path to a Chromium-based browser to use for the window; `HVSR_QUIET=1` shows fatal errors in a dialog.
 Logs: `data/logs/{launcher,engine,web}.log`.

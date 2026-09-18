@@ -40,7 +40,7 @@ COPY_INCLUDE = [
     "app", "bootstrap", "config", "database", "public", "resources/views", "routes", "storage",
     "artisan", "composer.json", "composer.lock", ".env.example",
     "engine/hvsr_engine", "engine/hvsr_service", "engine/pyproject.toml", "engine/requirements.lock.txt", "engine/README.md",
-    "launcher", "docs", "examples", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md", "HVSR Studio.bat",
+    "launcher", "docs", "examples", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md", "HVSR Studio.bat", "HVSR Studio.vbs",
 ]
 COPY_EXCLUDE_DIRS = {"__pycache__", "node_modules", ".pytest_cache", ".venv", "logs"}
 STORAGE_DIRS = ["storage/app/private", "storage/app/public", "storage/framework/cache/data",

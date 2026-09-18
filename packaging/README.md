@@ -1,5 +1,14 @@
 # Packaging
 
+## Sending the software to a client
+
+Every version tag (`git tag v1.0.0 && git push origin v1.0.0`) triggers `.github/workflows/windows-release.yml`,
+which builds the portable zip **and** the `setup.exe` installer on a GitHub Windows runner and attaches both to
+a GitHub Release. Send the client the installer link from the Releases page: they download one file, double-click
+it, and QuakeLogic HVSR Studio installs (per-user, no administrator rights) and opens in its own application
+window. Nothing else to install, no account, no internet connection needed afterwards.
+The same workflow can be started by hand from the Actions tab ("Windows release" → Run workflow).
+
 ## Windows x64 (portable zip + installer)
 
 ```

@@ -55,14 +55,15 @@ Name: "{app}\storage\framework\sessions"
 Name: "{app}\storage\framework\views"
 
 [Icons]
-Name: "{group}\QuakeLogic HVSR Studio"; Filename: "{app}\HVSR Studio.bat"; WorkingDir: "{app}"; IconFilename: "{app}\runtime\win-x64\php\php.exe"; Comment: "Start QuakeLogic HVSR Studio"
+Name: "{group}\QuakeLogic HVSR Studio"; Filename: "{app}\HVSR Studio.vbs"; WorkingDir: "{app}"; IconFilename: "{app}\public\favicon.ico"; Comment: "Start QuakeLogic HVSR Studio"
+Name: "{group}\HVSR Studio (console mode)"; Filename: "{app}\HVSR Studio.bat"; WorkingDir: "{app}"; IconFilename: "{app}\public\favicon.ico"; Comment: "Start with a console window for troubleshooting"
 Name: "{group}\HVSR Studio User Guide"; Filename: "{app}\docs\user-guide.md"
 Name: "{group}\Uninstall QuakeLogic HVSR Studio"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\QuakeLogic HVSR Studio"; Filename: "{app}\HVSR Studio.bat"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{autodesktop}\QuakeLogic HVSR Studio"; Filename: "{app}\HVSR Studio.vbs"; WorkingDir: "{app}"; IconFilename: "{app}\public\favicon.ico"; Tasks: desktopicon
 
 [Run]
 Filename: "{tmp}\vc_redist.x64.exe"; Parameters: "/install /quiet /norestart"; StatusMsg: "Installing Microsoft Visual C++ runtime..."; Check: VCRedistNeeded; Flags: waituntilterminated
-Filename: "{app}\HVSR Studio.bat"; Description: "Start QuakeLogic HVSR Studio now"; Flags: postinstall nowait skipifsilent shellexec
+Filename: "{app}\HVSR Studio.vbs"; Description: "Start QuakeLogic HVSR Studio now"; Flags: postinstall nowait skipifsilent shellexec
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\storage\framework"

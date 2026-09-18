@@ -182,6 +182,75 @@ def terminate(process: subprocess.Popen | None, name: str, log) -> None:
         pass
 
 
+def find_app_browser() -> Path | None:
+    """A Chromium-based browser able to open the interface as a standalone application window.
+
+    Order: $HVSR_BROWSER → Microsoft Edge (ships with Windows 10/11) → Google Chrome → Chromium.
+    """
+    override = os.environ.get("HVSR_BROWSER")
+    if override and Path(override).exists():
+        return Path(override)
+    candidates: list[Path] = []
+    if IS_WINDOWS:
+        for base in (os.environ.get("ProgramFiles(x86)"), os.environ.get("ProgramFiles"), os.environ.get("LOCALAPPDATA")):
+            if base:
+                candidates += [Path(base) / "Microsoft" / "Edge" / "Application" / "msedge.exe",
+                               Path(base) / "Google" / "Chrome" / "Application" / "chrome.exe",
+                               Path(base) / "Chromium" / "Application" / "chrome.exe"]
+    elif sys.platform == "darwin":
+        candidates += [Path("/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"),
+                       Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"),
+                       Path("/Applications/Chromium.app/Contents/MacOS/Chromium"),
+                       Path("/Applications/Brave Browser.app/Contents/MacOS/Brave Browser")]
+    for name in ("msedge", "microsoft-edge", "microsoft-edge-stable", "google-chrome", "google-chrome-stable",
+                 "chromium", "chromium-browser", "brave-browser"):
+        found = shutil.which(name)
+        if found:
+            candidates.append(Path(found))
+    for path in candidates:
+        if path.exists():
+            return path
+    return None
+
+
+def open_app_window(url: str, data_dir: Path, log) -> subprocess.Popen | None:
+    """Open the interface in its own application window (no tabs, no address bar).
+
+    A private browser profile under the data directory makes the window an independent
+    process, so the launcher can shut the services down when the window is closed even
+    when the same browser is already open for ordinary web browsing.
+    """
+    browser = find_app_browser()
+    if browser is None:
+        return None
+    profile = data_dir / "app-window-profile"
+    profile.mkdir(parents=True, exist_ok=True)
+    cmd = [str(browser), f"--app={url}", f"--user-data-dir={profile}", "--window-size=1500,950",
+           "--no-first-run", "--no-default-browser-check", "--disable-session-crashed-bubble",
+           "--disable-features=Translate,msEdgeShoppingUI,msHub", "--disable-extensions",
+           "--class=QuakeLogicHVSRStudio"]
+    kwargs: dict = dict(stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if IS_WINDOWS:
+        kwargs["creationflags"] = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+    try:
+        proc = subprocess.Popen(cmd, **kwargs)
+    except OSError as exc:
+        log(f"Could not open the application window ({exc}); falling back to the default browser.")
+        return None
+    log(f"Application window opened with {browser.name}")
+    return proc
+
+
+def notify_error(message: str) -> None:
+    """Show start-up errors in a dialog when there is no console to read them in."""
+    if IS_WINDOWS and (sys.executable.lower().endswith("pythonw.exe") or os.environ.get("HVSR_QUIET")):
+        try:
+            import ctypes
+            ctypes.windll.user32.MessageBoxW(None, message, "QuakeLogic HVSR Studio", 0x10)
+        except Exception:  # noqa: BLE001
+            pass
+
+
 def is_writable(directory: Path) -> bool:
     try:
         probe = directory / f".write-test-{os.getpid()}"
@@ -264,7 +333,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Start QuakeLogic HVSR Studio")
     parser.add_argument("--port", type=int, default=None, help="web port (default from .env APP_URL or 8090)")
     parser.add_argument("--engine-port", type=int, default=None, help="engine port (default from .env or 8765)")
-    parser.add_argument("--no-browser", action="store_true", help="do not open the browser")
+    parser.add_argument("--no-browser", action="store_true", help="do not open any window or browser")
+    parser.add_argument("--browser", action="store_true", help="open in the default web browser instead of the application window")
     parser.add_argument("--debug", action="store_true", help="echo service output to this console")
     parser.add_argument("--workers", type=int, default=None, help="engine worker threads")
     args = parser.parse_args(argv)
@@ -278,13 +348,17 @@ def main(argv: list[str] | None = None) -> int:
 
     php = find_php()
     if php is None:
-        print("ERROR: PHP was not found. Install PHP 8.3+ or place a bundled runtime in "
-              f"runtime/{platform_dir()}/php/. See docs/user-guide.md.")
+        message = ("PHP was not found. Install PHP 8.3+ or place a bundled runtime in "
+                   f"runtime/{platform_dir()}/php/. See docs/user-guide.md.")
+        print(f"ERROR: {message}")
+        notify_error(message)
         return 2
     python = find_python()
     if python is None:
-        print("ERROR: no Python environment with the HVSR engine was found. Run scripts/setup-dev "
-              f"or place a bundled runtime in runtime/{platform_dir()}/python/.")
+        message = ("No Python environment with the HVSR engine was found. Run scripts/setup-dev "
+                   f"or place a bundled runtime in runtime/{platform_dir()}/python/.")
+        print(f"ERROR: {message}")
+        notify_error(message)
         return 2
     log(f"PHP:    {php}")
     log(f"Python: {python}")
@@ -305,9 +379,17 @@ def main(argv: list[str] | None = None) -> int:
     # Already running? Then just open the browser.
     status = http_json(f"http://127.0.0.1:{preferred_web}/api/app/status")
     if status and isinstance(status, dict) and status.get("app_version"):
-        log(f"HVSR Studio is already running on port {preferred_web}; opening the browser.")
+        log(f"HVSR Studio is already running on port {preferred_web}; opening a new window.")
         if not args.no_browser:
-            webbrowser.open(f"http://127.0.0.1:{preferred_web}/")
+            existing_url = f"http://127.0.0.1:{preferred_web}/"
+            data_dir_hint = Path(os.environ.get("HVSR_DATA_DIR") or dotenv.get("HVSR_DATA_DIR") or "data")
+            if not data_dir_hint.is_absolute():
+                data_dir_hint = (APP_ROOT / data_dir_hint).resolve()
+            window = None if args.browser else open_app_window(existing_url, data_dir_hint, log)
+            if window is None:
+                webbrowser.open(existing_url)
+            else:
+                window.wait()
         return 0
 
     web_port = pick_port(preferred_web)
@@ -333,6 +415,7 @@ def main(argv: list[str] | None = None) -> int:
         run_setup(php, child_env, log)
     except subprocess.CalledProcessError as exc:
         print(f"ERROR: database setup failed (exit {exc.returncode}).")
+        notify_error(f"Database setup failed (exit {exc.returncode}). See data/logs.")
         return 3
 
     engine_cmd = [str(python), "-m", "hvsr_service", "--host", "127.0.0.1", "--port", str(engine_port), "--token", token]
@@ -367,14 +450,23 @@ def main(argv: list[str] | None = None) -> int:
 
         url = f"http://127.0.0.1:{web_port}/"
         log(f"Ready: {url}")
-        print("\n  Close this window (or press Ctrl+C) to stop QuakeLogic HVSR Studio.\n", flush=True)
+        window_proc: subprocess.Popen | None = None
         if not args.no_browser:
-            webbrowser.open(url)
+            window_proc = None if args.browser else open_app_window(url, data_dir, log)
+            if window_proc is None:
+                webbrowser.open(url)
+        if window_proc is not None:
+            print("\n  Close the QuakeLogic HVSR Studio window to stop the application.\n", flush=True)
+        else:
+            print("\n  Close this window (or press Ctrl+C) to stop QuakeLogic HVSR Studio.\n", flush=True)
 
         stop_requested = threading.Event()
         signal.signal(signal.SIGTERM, lambda *_: stop_requested.set())
         while not stop_requested.is_set():
             time.sleep(1)
+            if window_proc is not None and window_proc.poll() is not None:
+                log("Application window closed")
+                break
             for proc, name in ((engine_proc, "processing engine"), (php_proc, "web server")):
                 if proc.poll() is not None:
                     raise RuntimeError(f"The {name} stopped unexpectedly (exit code {proc.returncode}). See data/logs.")
@@ -383,6 +475,7 @@ def main(argv: list[str] | None = None) -> int:
         log("Shutting down")
     except RuntimeError as exc:
         print(f"ERROR: {exc}")
+        notify_error(str(exc))
         exit_code = 1
     finally:
         shutdown()
