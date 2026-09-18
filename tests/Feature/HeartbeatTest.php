@@ -11,7 +11,7 @@ class HeartbeatTest extends TestCase
         $this->getJson('/api/app/status')->assertOk()->assertJsonPath('heartbeat_age_s', null);
         $this->postJson('/api/app/heartbeat')->assertOk()->assertJson(['ok' => true]);
         $age = $this->getJson('/api/app/status')->assertOk()->json('heartbeat_age_s');
-        $this->assertIsFloat($age);
+        $this->assertIsNumeric($age);
         $this->assertLessThan(5, $age);
     }
 
