@@ -1,0 +1,93 @@
+{
+ "versions": {
+  "engine": "1.0.0",
+  "python": "3.12.14",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "obspy": "1.5.1",
+  "pandas": "2.3.3",
+  "matplotlib": "3.11.2"
+ },
+ "rows": [
+  {
+   "id": "A1",
+   "case": "Constant ratio N = E = 2\u00b7Z (identical noise)",
+   "metric": "max |HVSR \u2212 2| over 0.2\u201330 Hz",
+   "value": 1.3322676295501878e-15,
+   "tolerance": 1e-09,
+   "passed": true
+  },
+  {
+   "id": "A2",
+   "case": "RMS combination N = 3Z, E = Z \u2192 \u221a5",
+   "metric": "max |HVSR \u2212 \u221a5|",
+   "value": 1.7763568394002505e-15,
+   "tolerance": 1e-09,
+   "passed": true
+  },
+  {
+   "id": "A3a",
+   "case": "Synthetic 1-DOF site (f0 = 2.5 Hz, A0 = 5): mean curve vs analytic |H(f)|",
+   "metric": "median relative deviation, 0.5\u201320 Hz",
+   "value": 0.015545541799049212,
+   "tolerance": 0.05,
+   "passed": true
+  },
+  {
+   "id": "A3b",
+   "case": "same",
+   "metric": "max relative deviation, 0.5\u201320 Hz (largest at the resonance, where K\u2013O smoothing lowers the peak)",
+   "value": 0.0890307297422891,
+   "tolerance": 0.2,
+   "passed": true
+  },
+  {
+   "id": "A3c",
+   "case": "same",
+   "metric": "|f0 \u2212 2.5| / 2.5",
+   "value": 0.03246195627814572,
+   "tolerance": 0.05,
+   "passed": true
+  },
+  {
+   "id": "A4",
+   "case": "Rotation of a pure-N signal by 90\u00b0 \u2192 pure E",
+   "metric": "max abs error",
+   "value": 6.123227268553906e-17,
+   "tolerance": 1e-12,
+   "passed": true
+  },
+  {
+   "id": "A5",
+   "case": "Konno\u2013Ohmachi smoothing of a flat spectrum (b = 40)",
+   "metric": "max |smoothed \u2212 1|",
+   "value": 2.220446049250313e-15,
+   "tolerance": 1e-12,
+   "passed": true
+  },
+  {
+   "id": "A6",
+   "case": "Butterworth low-pass, 10 Hz, order 4 (single pass)",
+   "metric": "|gain at cutoff + 3.01 dB|",
+   "value": 0.0005668140728762872,
+   "tolerance": 0.05,
+   "passed": true
+  },
+  {
+   "id": "A7",
+   "case": "Decimation 200 \u2192 50 Hz of 1 Hz + 45 Hz sinusoids (45 Hz must vanish, 1 Hz stay aligned)",
+   "metric": "max abs error vs 1 Hz reference",
+   "value": 0.0006849597006349795,
+   "tolerance": 0.02,
+   "passed": true
+  },
+  {
+   "id": "A8",
+   "case": "Vertical spectrum zeroed between 3\u20138 Hz",
+   "metric": "bins 4.5\u20135.5 Hz reported null and no ratio > 100",
+   "value": 12.0,
+   "tolerance": null,
+   "passed": true
+  }
+ ]
+}

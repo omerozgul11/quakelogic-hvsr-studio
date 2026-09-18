@@ -1,0 +1,78 @@
+{
+ "available": true,
+ "hvsrpy_version": "2.1.0",
+ "input": "synthetic_site_A_2p5Hz.txt",
+ "settings": {
+  "taper": "Tukey 0.1 (5 % per side)",
+  "detrend": "linear per window",
+  "smoothing": "Konno\u2013Ohmachi b = 40",
+  "frequencies": "200 log-spaced 0.2\u201330.0 Hz",
+  "horizontal": "geometric mean",
+  "screening": "none",
+  "overlap": "0 (identical windows cut by hvsr_engine were handed to hvsrpy)"
+ },
+ "comparisons": [
+  {
+   "id": "B1",
+   "window_length_s": 60.0,
+   "combination_stage": "before_smoothing",
+   "description": "identical 60 s windows, hvsr_engine kernels evaluated on hvsrpy's zero-padded FFT grid (n = 32768) \u2014 same algorithm, same grid",
+   "n_windows": 20,
+   "hvsrpy_fft_n": 32768,
+   "engine_fft_n": 32768,
+   "max_rel_diff_mean_curve": 0.0021910482548925803,
+   "median_rel_diff_mean_curve": 0.00025803231327392595,
+   "max_rel_diff_above_1hz": 0.0021910482548925803,
+   "max_abs_diff_sigma_ln": 0.002955406499815072,
+   "f0_engine": 2.480522616731285,
+   "f0_hvsrpy": 2.480522616731285,
+   "a0_engine": 4.521837499357617,
+   "a0_hvsrpy": 4.53176681913827,
+   "elapsed_engine_s": 0.73,
+   "elapsed_hvsrpy_s": 0.52
+  },
+  {
+   "id": "B2",
+   "window_length_s": 60.0,
+   "combination_stage": "before_smoothing",
+   "description": "identical 60 s windows, full hvsr_engine.analyze at native FFT length (6000) vs hvsrpy zero-padded to 32768",
+   "n_windows": 20,
+   "hvsrpy_fft_n": 32768,
+   "engine_fft_n": 6000,
+   "max_rel_diff_mean_curve": 0.06710726924773436,
+   "median_rel_diff_mean_curve": 0.0027813898704777684,
+   "max_rel_diff_above_1hz": 0.017125793336115858,
+   "max_abs_diff_sigma_ln": 0.07501857421726416,
+   "f0_engine": 2.4188451093046357,
+   "f0_hvsrpy": 2.480522616731285,
+   "a0_engine": 4.5350959145904355,
+   "a0_hvsrpy": 4.53176681913827,
+   "elapsed_engine_s": 0.41,
+   "elapsed_hvsrpy_s": 0.52
+  },
+  {
+   "id": "B3",
+   "window_length_s": 60.0,
+   "combination_stage": "after_smoothing",
+   "description": "identical 60 s windows, hvsr_engine DEFAULT (combination after smoothing, native FFT length) vs hvsrpy (before smoothing)",
+   "n_windows": 20,
+   "hvsrpy_fft_n": 32768,
+   "engine_fft_n": 6000,
+   "max_rel_diff_mean_curve": 0.09421593565447339,
+   "median_rel_diff_mean_curve": 0.0754503744467202,
+   "max_rel_diff_above_1hz": 0.08287069733231434,
+   "max_abs_diff_sigma_ln": 0.07798267137970638,
+   "f0_engine": 2.4188451093046357,
+   "f0_hvsrpy": 2.480522616731285,
+   "a0_engine": 4.8846785835528514,
+   "a0_hvsrpy": 4.53176681913827,
+   "elapsed_engine_s": 0.62,
+   "elapsed_hvsrpy_s": 0.52
+  }
+ ],
+ "figures": [
+  "B1_hvsrpy_comparison.png",
+  "B2_hvsrpy_comparison.png",
+  "B3_hvsrpy_comparison.png"
+ ]
+}
