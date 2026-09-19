@@ -98,7 +98,14 @@ useProcessingPanel(panelContent);
 function trackAnalysis(a: Analysis) {
     jobs.track({
         key: `analysis:${a.id}`, label: `HVSR · ${a.name}`, kind: 'analysis', status: a.status, progress: a.progress ?? 0,
-        poll: async () => { const x = await api.analyses.get(a.id, false); return { status: x.status, progress: x.progress ?? x.job?.progress ?? 0, message: x.job?.message, error: x.error }; },
+        poll: async () => {
+            const x = await api.analyses.get(a.id, false);
+            const progress = x.progress ?? x.job?.progress ?? 0;
+            if (analysis.value && analysis.value.id === a.id) {
+                analysis.value = { ...analysis.value, status: x.status, progress, error: x.error ?? null, job: x.job ?? analysis.value.job };
+            }
+            return { status: x.status, progress, message: x.job?.message, error: x.error };
+        },
         onDone: async (s) => {
             await store.refresh();
             if (analysisId.value === a.id) await loadAnalysis();
@@ -347,7 +354,12 @@ const recordingAnalyses = computed(() => recording.value?.analyses ?? []);
             </PageHeader>
 
             <Panel v-if="analysis.status === 'queued' || analysis.status === 'running'">
-                <div class="flex items-center gap-3 text-[12.5px]"><span class="font-medium">{{ analysis.status === 'queued' ? 'Queued' : 'Running' }}…</span><div class="flex-1"><ProgressBar :value="analysis.progress ?? 0" :indeterminate="analysis.status === 'queued'" /></div></div>
+                <div class="flex items-center gap-3 text-[12.5px]">
+                    <span class="font-medium">{{ analysis.status === 'queued' ? 'Queued' : 'Running' }}…</span>
+                    <span class="text-muted truncate">{{ analysis.job?.message ?? (analysis.status === 'queued' ? 'waiting for the processing engine' : 'computing') }}</span>
+                    <div class="flex-1"><ProgressBar :value="analysis.progress ?? 0" :indeterminate="analysis.status === 'queued'" /></div>
+                    <span class="num text-faint w-10 text-right">{{ Math.round((analysis.progress ?? 0) * 100) }}%</span>
+                </div>
             </Panel>
             <ErrorBanner v-else-if="analysis.status === 'failed'" :error="new Error(analysis.error ?? 'Analysis failed')" title="Analysis failed" />
             <Panel v-else-if="analysis.status === 'cancelled'"><p class="text-[12.5px] text-muted">This analysis was cancelled. Use Re-run to compute it.</p></Panel>
