@@ -31,6 +31,9 @@ import urllib.request
 import webbrowser
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from webpool import WebPool  # noqa: E402
+
 APP_ROOT = Path(__file__).resolve().parent.parent
 IS_WINDOWS = os.name == "nt"
 # Helper processes must never open console windows of their own (the hidden launcher has none).
@@ -410,7 +413,7 @@ def php_environment(php: Path) -> dict[str, str]:
         except OSError:
             pass
     env["PHP_INI_SCAN_DIR"] = os.pathsep.join(scan_dirs)
-    env["PHP_CLI_SERVER_WORKERS"] = "6"
+    env["PHP_CLI_SERVER_WORKERS"] = "2"
     return env
 
 
@@ -504,18 +507,19 @@ def main(argv: list[str] | None = None) -> int:
     engine_cmd = [str(python), "-m", "hvsr_service", "--host", "127.0.0.1", "--port", str(engine_port), "--token", token]
     if args.workers:
         engine_cmd += ["--workers", str(args.workers)]
-    php_cmd = [str(php), "artisan", "serve", "--host=127.0.0.1", f"--port={web_port}", "--no-reload"]
+    web_backends = max(3, min(6, (os.cpu_count() or 4)))
 
     popen_kwargs: dict = dict(stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=child_env)
     if IS_WINDOWS:
         popen_kwargs["creationflags"] = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0) | NO_WINDOW
 
     engine_proc: subprocess.Popen | None = None
-    php_proc: subprocess.Popen | None = None
+    web_pool: WebPool | None = None
     exit_code = 0
 
     def shutdown(*_):
-        terminate(php_proc, "web server", log)
+        if web_pool is not None:
+            web_pool.stop(terminate)
         terminate(engine_proc, "processing engine", log)
 
     try:
@@ -524,12 +528,12 @@ def main(argv: list[str] | None = None) -> int:
         stream_output(engine_proc, logs_dir / "engine.log", args.debug, "engine")
 
         log(f"Starting web server on 127.0.0.1:{web_port}")
-        php_proc = subprocess.Popen(php_cmd, cwd=APP_ROOT, **popen_kwargs)
-        stream_output(php_proc, logs_dir / "web.log", args.debug, "web")
+        web_pool = WebPool(php, APP_ROOT, "127.0.0.1", web_port, web_backends, child_env, log, logs_dir / "web.log")
+        web_pool.start(popen_kwargs)
 
         wait_for("Processing engine", lambda: http_json(f"http://127.0.0.1:{engine_port}/health", {"X-Engine-Token": token}),
                  90, engine_proc, log)
-        wait_for("Web server", lambda: http_json(f"http://127.0.0.1:{web_port}/api/app/status"), 60, php_proc, log)
+        wait_for("Web server", lambda: http_json(f"http://127.0.0.1:{web_port}/api/app/status"), 60, None, log)
 
         url = f"http://127.0.0.1:{web_port}/"
         log(f"Ready: {url}")
@@ -554,25 +558,28 @@ def main(argv: list[str] | None = None) -> int:
         last_check = 0.0
         while not stop_requested.is_set():
             time.sleep(1)
-            for proc, name in ((engine_proc, "processing engine"), (php_proc, "web server")):
-                if proc.poll() is not None:
-                    raise RuntimeError(f"The {name} stopped unexpectedly (exit code {proc.returncode}). See data/logs.")
+            if engine_proc.poll() is not None:
+                raise RuntimeError(f"The processing engine stopped unexpectedly (exit code {engine_proc.returncode}). See data/logs.")
+            if web_pool.poll() is not None:
+                raise RuntimeError("A web server process stopped unexpectedly. See data/logs.")
             if args.no_browser:
                 continue
             now = time.monotonic()
             if now - last_check < 2:
                 continue
             last_check = now
-            status = http_json(f"http://127.0.0.1:{web_port}/api/app/status") or {}
+            status = http_json(f"http://127.0.0.1:{web_port}/api/app/status", timeout=5)
+            if not isinstance(status, dict):
+                continue  # busy or momentarily unreachable: never a reason to stop
             hb = status.get("heartbeat_age_s")
             gb = status.get("goodbye_age_s")
             if isinstance(hb, (int, float)) and hb < 10:
                 seen_heartbeat = True
             if seen_heartbeat:
-                if hb is None or hb > 15:
+                if hb is None or hb > 30:
                     log("Application window closed (no heartbeat)")
                     break
-                if isinstance(gb, (int, float)) and gb < 20 and hb > 6:
+                if isinstance(gb, (int, float)) and gb < 30 and hb > 8:
                     log("Application window closed")
                     break
             elif now - opened_at > 120:

@@ -335,6 +335,7 @@ software versions; *Re-run* reproduces it, and `config.json` can be applied to o
 | Symptom | What to do |
 |---|---|
 | "Processing engine is not running" banner | the Python service stopped; close and restart the launcher; read `data/logs/engine.log` |
+| "Server unreachable" in the top bar | the *local* web process is not answering (nothing is contacted outside your computer). It recovers by itself when a long operation finishes; if it stays, close the window, start the application again and read `launcher.log` and `web.log` in the logs folder |
 | Browser shows nothing at 127.0.0.1:8090 | the launcher window prints the actual port; check `data/logs/web.log` |
 | Upload fails or hangs on a large file | files up to 4 GB are accepted; disk space is required for the copy + canonical traces |
 | Import blocked | the listed errors must be fixed in the source data or the mapping; HVSR Studio never repairs data silently |

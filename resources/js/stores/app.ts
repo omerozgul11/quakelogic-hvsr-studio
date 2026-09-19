@@ -49,12 +49,16 @@ export const useAppStore = defineStore('app', () => {
         return engineOk.value ? 'Engine ready' : 'Engine offline';
     });
 
+    let failures = 0;
     async function refreshStatus() {
         try {
             status.value = await api.app.status();
             statusError.value = null;
+            failures = 0;
         } catch (e) {
-            statusError.value = (e as Error).message;
+            // One slow or failed poll (e.g. during a large upload) is not an outage.
+            failures += 1;
+            if (failures >= 2) statusError.value = (e as Error).message;
         }
     }
     function startPolling(intervalMs = 15000) {

@@ -6,7 +6,7 @@
 2. creates `.env` from `.env.example` on first run and generates the application key;
 3. runs `php artisan hvsr:setup` (SQLite migrations + built-in presets, idempotent);
 4. starts the processing engine (`python -m hvsr_service`) with a per-session shared token;
-5. starts the web server (`php artisan serve`) bound to 127.0.0.1;
+5. starts a pool of PHP web back ends (`php -S` on private ports, see `webpool.py`) behind a threaded reverse proxy on the public port, so long uploads or engine calls never block status polls or the heartbeat (PHP's built-in server handles one request at a time per process and cannot fork on Windows);
 6. waits for both health checks, opens the interface in a dedicated application window (Edge/Chrome/Chromium
    `--app` mode with a private profile; falls back to the default browser), and stops both processes when that
    window is closed or the launcher exits.
