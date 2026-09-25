@@ -1,0 +1,43 @@
+1
+00:00:00,250 --> 00:00:15,630
+QuakeLogic H V S R Studio. Standalone horizontal to vertical spectral ratio analysis for three component seismic recordings. No account, no license server, no internet connection. Everything runs on your own computer.
+
+2
+00:00:15,880 --> 00:00:27,260
+Your work is organized in projects. Stations, recordings, processing runs, analyses and reports are stored together in a local project folder, ready to back up or share.
+
+3
+00:00:27,510 --> 00:00:46,540
+Import text, C S V, Mini SEED, SAF and other formats. The wizard detects delimiters, lets you assign the north, east and vertical components explicitly, and validates timing, gaps, clipping and alignment before any analysis. Nothing is ever interpolated or resampled silently.
+
+4
+00:00:46,790 --> 00:01:01,930
+Inspect synchronized waveforms, amplitude spectra and spectrograms, and build a transparent processing chain: detrending, Butterworth filters, notch, taper, resampling and rotation. Every operation and parameter is recorded.
+
+5
+00:01:02,180 --> 00:01:14,370
+Select analysis windows automatically or by hand. Windows are color coded, transients are screened with an S T A over L T A trigger, and you can even listen to the recording to bookmark noise.
+
+6
+00:01:14,620 --> 00:01:27,030
+The HVSR engine computes Konno Ohmachi smoothed ratios for every window, with mean curves, dispersion bands, candidate peaks, and every SESAME criterion reported one by one.
+
+7
+00:01:27,280 --> 00:01:31,890
+Check the stationarity of the site response with H over V versus time,
+
+8
+00:01:32,140 --> 00:01:35,890
+and look for directional effects with the azimuthal rotate graph.
+
+9
+00:01:36,140 --> 00:01:44,060
+Compare the measured curve with a synthetic one from a layered ground model, with V S thirty and V S equivalent at a glance.
+
+10
+00:01:44,310 --> 00:01:55,800
+Export C S V, JSON and figures, or generate a complete PDF report with your logo, survey details, quality flags and a clear statement of interpretation limits.
+
+11
+00:01:56,050 --> 00:02:04,900
+QuakeLogic H V S R Studio. Download it, install it, and start analyzing. Visit quakelogic dot net.
