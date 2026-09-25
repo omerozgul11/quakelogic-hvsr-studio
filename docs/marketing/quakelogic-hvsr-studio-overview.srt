@@ -1,43 +1,43 @@
 1
-00:00:00,250 --> 00:00:15,630
-QuakeLogic H V S R Studio. Standalone horizontal to vertical spectral ratio analysis for three component seismic recordings. No account, no license server, no internet connection. Everything runs on your own computer.
+00:00:00,250 --> 00:00:16,900
+Meet QuakeLogic HVSR Studio: a standalone desktop application for horizontal to vertical spectral ratio analysis. There's no account to create and no internet connection needed. Everything runs right on your own computer.
 
 2
-00:00:15,880 --> 00:00:27,260
-Your work is organized in projects. Stations, recordings, processing runs, analyses and reports are stored together in a local project folder, ready to back up or share.
+00:00:17,150 --> 00:00:30,870
+Your work lives in projects. Each project keeps its stations, recordings, analyses and reports together in one local folder, so backing up or sharing a survey is as simple as copying a folder.
 
 3
-00:00:27,510 --> 00:00:46,540
-Import text, C S V, Mini SEED, SAF and other formats. The wizard detects delimiters, lets you assign the north, east and vertical components explicitly, and validates timing, gaps, clipping and alignment before any analysis. Nothing is ever interpolated or resampled silently.
+00:00:31,120 --> 00:00:53,770
+Bringing data in is easy. Drop in text, CSV, MiniSEED or SAF files, and the import wizard takes it from there. It detects the delimiter, lets you assign the north, east and vertical components yourself, and checks timing, gaps, clipping and alignment before anything is analyzed. Nothing is ever interpolated or resampled behind your back.
 
 4
-00:00:46,790 --> 00:01:01,930
-Inspect synchronized waveforms, amplitude spectra and spectrograms, and build a transparent processing chain: detrending, Butterworth filters, notch, taper, resampling and rotation. Every operation and parameter is recorded.
+00:00:54,020 --> 00:01:12,220
+On the waveforms page you can inspect all three components together, look at spectra and spectrograms, and build a processing chain step by step: detrending, filtering, tapering, resampling, rotation. Every operation is recorded, so your results are always reproducible.
 
 5
-00:01:02,180 --> 00:01:14,370
-Select analysis windows automatically or by hand. Windows are color coded, transients are screened with an S T A over L T A trigger, and you can even listen to the recording to bookmark noise.
+00:01:12,470 --> 00:01:26,620
+Next, choose your analysis windows: automatically, by hand, or a mix of both. Windows are color coded, transients are screened for you, and you can even listen to the recording to catch noise you'd otherwise miss.
 
 6
-00:01:14,620 --> 00:01:27,030
-The HVSR engine computes Konno Ohmachi smoothed ratios for every window, with mean curves, dispersion bands, candidate peaks, and every SESAME criterion reported one by one.
+00:01:26,870 --> 00:01:41,450
+Then run the analysis. The engine computes Konno Ohmachi smoothed ratios for every window, and gives you the mean curve, its dispersion band, candidate peaks, and each SESAME criterion, reported one by one.
 
 7
-00:01:27,280 --> 00:01:31,890
-Check the stationarity of the site response with H over V versus time,
+00:01:41,700 --> 00:01:47,970
+Want to check stationarity? The H over V versus time view shows it at a glance.
 
 8
-00:01:32,140 --> 00:01:35,890
-and look for directional effects with the azimuthal rotate graph.
+00:01:48,220 --> 00:01:52,570
+And the rotate graph reveals any directional effects.
 
 9
-00:01:36,140 --> 00:01:44,060
-Compare the measured curve with a synthetic one from a layered ground model, with V S thirty and V S equivalent at a glance.
+00:01:52,820 --> 00:02:03,270
+You can also compare your measured curve against a synthetic one from a layered ground model, with Vs30 and VsEq calculated for you.
 
 10
-00:01:44,310 --> 00:01:55,800
-Export C S V, JSON and figures, or generate a complete PDF report with your logo, survey details, quality flags and a clear statement of interpretation limits.
+00:02:03,520 --> 00:02:15,270
+When you're done, export CSV, JSON and figures, or generate a complete PDF report with your logo, survey details and quality flags, in one click.
 
 11
-00:01:56,050 --> 00:02:04,900
-QuakeLogic H V S R Studio. Download it, install it, and start analyzing. Visit quakelogic dot net.
+00:02:15,520 --> 00:02:25,220
+QuakeLogic HVSR Studio. Download it, install it, and start analyzing today. Learn more at quakelogic.net.
