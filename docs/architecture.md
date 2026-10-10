@@ -412,3 +412,14 @@ context carries `survey`; the PDF gets a "Survey" section (table + the photos si
   → `{"fs","t0","values":[...]}` (engine `/recordings/data` with `max_points` = n_samples; capped at 4,000,000 samples).
 * Project backup: `GET /api/projects/{p}/backup` streams `<slug>-backup.zip` (project folder + `database.json` with all rows);
   `POST /api/projects/restore` (multipart `file`) recreates the project (new ULIDs if the slug exists → suffix).
+
+## Licensing (1.1.0)
+
+Identical mechanism to MASW Studio: `engine/hvsr_service/licensing.py` + `ed25519.py` (pure-Python
+RFC 8032 verification, QuakeLogic public key embedded), signed per-computer `.qlicense` files, a
+14-day HMAC-protected trial with registry mirror and clock-rollback detection, TRIAL marks on
+figures/exports/reports, and `LicenseRequired` → HTTP 402. Laravel proxies `GET|POST /api/license`
+and maps 402 through; the SPA shows a licence chip in the top bar, a License page (Machine ID,
+status, import, request by e-mail, EULA) and a dialog whenever a gated call returns 402.
+Licences are issued with `scripts/issue_license.py` from the signing key in
+`~/.config/quakelogic/masw-licensing/` (shared with MASW Studio; `product` distinguishes them).

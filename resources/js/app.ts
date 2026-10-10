@@ -3,6 +3,7 @@ import { createPinia } from 'pinia';
 import App from './App.vue';
 import { router } from './router';
 import { useAppStore } from './stores/app';
+import { useLicenseStore } from './stores/license';
 
 const app = createApp(App);
 app.use(createPinia());
@@ -18,5 +19,6 @@ heartbeat();
 window.setInterval(heartbeat, 4000);
 window.addEventListener('pagehide', () => { try { navigator.sendBeacon('/api/app/goodbye'); } catch { /* ignore */ } });
 void appStore.loadSettings();
+void useLicenseStore().load();
 
 app.mount('#app');

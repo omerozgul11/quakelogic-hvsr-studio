@@ -55,7 +55,7 @@ class ProjectApiTest extends TestCase
 
     public function test_app_status_and_settings(): void
     {
-        $this->getJson('/api/app/status')->assertOk()->assertJsonPath('engine.status', 'ok')->assertJsonPath('app_version', '1.0.0');
+        $this->getJson('/api/app/status')->assertOk()->assertJsonPath('engine.status', 'ok')->assertJsonPath('app_version', config('hvsr.app_version'));
 
         $this->putJson('/api/settings', ['theme_default' => 'dark', 'plot_max_points' => 6000])->assertOk()
             ->assertJsonPath('theme_default', 'dark')->assertJsonPath('plot_max_points', 6000);

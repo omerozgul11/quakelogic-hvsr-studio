@@ -215,3 +215,19 @@ Python service.
 `POST /api/projects/{p}/recordings` now accepts `import.format` ∈ `ascii, mseed, saf, seismic` (`saf` passes `import.saf`, `seismic` uses the `import.mseed` trace mapping). `POST /api/recordings/{r}/windows` passes `params.windows` (`mode` fixed/auto_variable/custom, `custom` list) through to the engine; window items carry `length_s` and `color_index`.
 
 Migration `2026_09_16_000001_add_survey_and_models_to_analyses` adds `analyses.survey` and `analyses.models` (JSON, guarded with `hasColumn`).
+
+
+## Licensing (added 2026-10-10)
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/license` | proxies engine `GET /license` → `{state: licensed|trial|unlicensed, allowed, trial, message, machine_id, release_date, sales, trial_days, trial_info?, license?, license_problem?, reason?}` |
+| POST | `/api/license` | multipart `file` (`.qlicense`/`.json`, ≤ 64 KB) → staged under `storage/app/license-staging/<random>/`, forwarded to engine `POST /license` (multipart), staging deleted; returns the status dict, or 422 `{message}` when the engine refuses the file |
+
+`GET /api/app/status` now carries `license: {state, message, allowed} | null` (null when the engine is down or the
+licence call fails — the status call itself never fails because of licensing).
+
+When the engine refuses a calculation (HTTP 402 with `license_required: true` in its envelope), Laravel answers
+**402** `{message, code: "license_required", details, license_required: true}`; `EngineErrorException` carries a
+`licenseRequired` flag. Reads (projects, recordings, data, results, exports of existing files) are never locked.
+`DocsController` serves `docs/eula.md` as `eula` ("Licence agreement").

@@ -27,6 +27,9 @@ class FakeEngineClient implements EngineClientInterface
 
     public bool $down = false;
 
+    /** 'trial' | 'licensed' | 'unlicensed' — what the fake engine reports and enforces. */
+    public string $licenseState = 'trial';
+
     private int $jobCounter = 0;
 
     public function health(): array
@@ -140,6 +143,7 @@ class FakeEngineClient implements EngineClientInterface
 
     public function recordingSpectra(array $request): array
     {
+        $this->requireLicense();
         $this->log(__FUNCTION__, $request);
 
         return ['frequency' => [0.5, 1, 2], 'components' => ['n' => [1, 2, 1], 'e' => [1, 2, 1], 'z' => [1, 1, 1]], 'units' => 'counts*s', 'definition' => 'fake'];
@@ -147,6 +151,7 @@ class FakeEngineClient implements EngineClientInterface
 
     public function processingPreview(array $request): array
     {
+        $this->requireLicense();
         $this->log(__FUNCTION__, $request);
 
         return [
@@ -160,6 +165,7 @@ class FakeEngineClient implements EngineClientInterface
 
     public function processingRun(array $request): array
     {
+        $this->requireLicense();
         $this->log(__FUNCTION__, $request);
 
         return $this->createJob('processing_run', [
@@ -215,6 +221,7 @@ class FakeEngineClient implements EngineClientInterface
 
     public function hvsrAnalyze(array $request): array
     {
+        $this->requireLicense();
         $this->log(__FUNCTION__, $request);
         $dir = $request['output_dir'];
         $result = $this->fakeResult($request);
@@ -271,6 +278,7 @@ class FakeEngineClient implements EngineClientInterface
 
     public function exportFigure(array $request): array
     {
+        $this->requireLicense();
         $this->log(__FUNCTION__, $request);
         @mkdir(dirname($request['output_path']), 0777, true);
         file_put_contents($request['output_path'], 'FAKE-'.strtoupper($request['format']));
@@ -280,6 +288,7 @@ class FakeEngineClient implements EngineClientInterface
 
     public function exportReport(array $request): array
     {
+        $this->requireLicense();
         $this->log(__FUNCTION__, $request);
         $out = $request['output_path'];
 
@@ -330,6 +339,7 @@ class FakeEngineClient implements EngineClientInterface
 
     public function modelHvsr(array $request): array
     {
+        $this->requireLicense();
         $this->log(__FUNCTION__, $request);
         $layers = $request['layers'] ?? [];
         $n = (int) ($request['n_freq'] ?? 5);
@@ -439,6 +449,45 @@ class FakeEngineClient implements EngineClientInterface
     {
         $this->guard();
         $this->calls[] = ['method' => $method, 'payload' => $payload];
+    }
+
+    public function licenseStatus(): array
+    {
+        $this->guard();
+        $base = ['machine_id' => 'K3J9Q-7ZP2M-ABCDE-23456', 'release_date' => '2026-10-10', 'sales' => 'sales@quakelogic.net', 'trial_days' => 14];
+
+        return match ($this->licenseState) {
+            'licensed' => $base + ['state' => 'licensed', 'allowed' => true, 'trial' => false, 'message' => 'Licensed to Test Geo Ltd',
+                'license' => ['license_id' => 'HVSR-2026-0001', 'customer' => 'Test Geo Ltd', 'contact' => 'qa@example.com', 'edition' => 'Professional',
+                    'seats' => 1, 'issued' => '2026-10-10', 'maintenance_until' => '2027-10-10', 'expires' => null]],
+            'unlicensed' => $base + ['state' => 'unlicensed', 'allowed' => false, 'trial' => false, 'message' => 'Licence required',
+                'reason' => 'The 14-day trial has ended.', 'trial_info' => ['started' => '2026-09-01', 'ends' => '2026-09-15', 'days_left' => 0]],
+            default => $base + ['state' => 'trial', 'allowed' => true, 'trial' => true, 'message' => 'Trial · 9 days left',
+                'trial_info' => ['started' => '2026-10-05', 'ends' => '2026-10-19', 'days_left' => 9]],
+        };
+    }
+
+    public function installLicense(string $path): array
+    {
+        $this->guard();
+        $this->log(__FUNCTION__, compact('path'));
+        $content = is_file($path) ? (string) file_get_contents($path) : '';
+        if (! str_contains($content, '"signature"')) {
+            throw new EngineErrorException(422, 'invalid_license', 'This is not a valid HVSR Studio licence file.');
+        }
+        $this->licenseState = 'licensed';
+
+        return $this->licenseStatus();
+    }
+
+    private function requireLicense(): void
+    {
+        $this->guard();
+        if ($this->licenseState === 'unlicensed') {
+            throw new EngineErrorException(402, 'license_required',
+                'The 14-day trial has ended. You can still open, view and save projects. To continue analysing, open License and import your licence file, or contact sales@quakelogic.net.',
+                [], true);
+        }
     }
 
     private function guard(): void

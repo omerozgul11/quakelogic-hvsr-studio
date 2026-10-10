@@ -15,6 +15,12 @@ export class ApiError extends Error {
         return this.status === 503;
     }
 
+    /** True when the engine refused a calculation because neither trial nor licence is active (HTTP 402). */
+    get licenseRequired(): boolean {
+        const p = this.payload as { license_required?: boolean } | null;
+        return this.status === 402 || !!(p && p.license_required);
+    }
+
     get hint(): string | null {
         const p = this.payload as { hint?: string } | null;
         return p && typeof p.hint === 'string' ? p.hint : null;
@@ -52,7 +58,9 @@ async function request<T>(method: string, path: string, body?: unknown, init: Re
     if (!res.ok) {
         const d = (data ?? {}) as { message?: string; errors?: Record<string, string[]> };
         const msg = d.message || `${res.status} ${res.statusText}`;
-        throw new ApiError(res.status, msg, d.errors ?? null, data);
+        const error = new ApiError(res.status, msg, d.errors ?? null, data);
+        if (error.licenseRequired) window.dispatchEvent(new CustomEvent('hvsr-license-required', { detail: msg }));
+        throw error;
     }
     return data as T;
 }

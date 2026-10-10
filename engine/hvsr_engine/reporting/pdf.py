@@ -230,13 +230,23 @@ def _config_hash(result: dict) -> str:
 
 
 class _PageDecorator:
-    def __init__(self, title: str, generated: str):
+    def __init__(self, title: str, generated: str, trial: bool = False):
         self.title = title
         self.generated = generated
+        self.trial = trial
 
     def __call__(self, canvas, doc):
         canvas.saveState()
         w, h = letter
+        if self.trial:
+            canvas.saveState()
+            canvas.setFillColor(ORANGE)
+            canvas.setFillAlpha(0.13)
+            canvas.setFont("Helvetica-Bold", 44)
+            canvas.translate(w / 2, h / 2)
+            canvas.rotate(30)
+            canvas.drawCentredString(0, 0, "HVSR Studio TRIAL · evaluation only")
+            canvas.restoreState()
         # header
         if LOGO_PATH.exists():
             # Official wordmark (739 × 120 px) scaled to 1.6 in wide, baseline-aligned with the header text.
@@ -268,7 +278,8 @@ class _PageDecorator:
 
 # --------------------------------------------------------------------------- report
 def build_report(result: dict, context: dict, output_path: str, analysis_dir: str,
-                 recording=None, progress: Callable[[float, str], None] | None = None) -> str:
+                 recording=None, progress: Callable[[float, str], None] | None = None,
+                 trial: bool = False) -> str:
     """Build the PDF analysis report and return ``output_path``."""
     context = context or {}
     st = _styles()
@@ -311,6 +322,10 @@ def build_report(result: dict, context: dict, output_path: str, analysis_dir: st
     sub = (f"{_esc(project.get('name', 'Project'))} · Station {_esc(station.get('code') or inp.get('station') or '–')} · "
            f"Recording {_esc(recording_ctx.get('name') or '–')} · Generated {generated}")
     story.append(Paragraph(sub, st["subtitle"]))
+    if trial:
+        story.append(Paragraph("<b>TRIAL NOTICE:</b> this report was produced during the HVSR Studio evaluation period. "
+                               "It is marked TRIAL on every page and must not be delivered to clients as professional work.",
+                               st["warning"] if "warning" in st else st["body"]))
     if is_synth:
         story.append(Paragraph("<b>SYNTHETIC DATA NOTICE:</b> the analysed recording is a synthetic example, "
                                "not a field measurement. Results demonstrate the workflow only.",
@@ -603,6 +618,6 @@ def build_report(result: dict, context: dict, output_path: str, analysis_dir: st
     story.append(Paragraph(_esc(COMPANY_LINE), st["small"]))
     story.append(Paragraph(_esc(copyright_line(generated)), st["small"]))
 
-    doc.build(story, onFirstPage=_PageDecorator(title, generated), onLaterPages=_PageDecorator(title, generated))
+    doc.build(story, onFirstPage=_PageDecorator(title, generated, trial), onLaterPages=_PageDecorator(title, generated, trial))
     _prog(1.0, "done")
     return output_path

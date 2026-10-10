@@ -22,6 +22,16 @@ class AppStatusController extends Controller
             $health = ['status' => 'error', 'hint' => $e->getMessage()];
         }
 
+        $license = null;
+        if (($health['status'] ?? null) === 'ok') {
+            try {
+                $full = $engine->licenseStatus();
+                $license = ['state' => $full['state'] ?? null, 'message' => $full['message'] ?? null, 'allowed' => (bool) ($full['allowed'] ?? false)];
+            } catch (\Throwable) {
+                $license = null;
+            }
+        }
+
         return response()->json([
             'app_version' => config('hvsr.app_version'),
             'app_name' => config('app.name'),
@@ -30,6 +40,7 @@ class AppStatusController extends Controller
             'data_dir' => config('hvsr.data_dir'),
             'theme_default' => Setting::get('theme_default', 'system'),
             'php_version' => PHP_VERSION,
+            'license' => $license,
             'heartbeat_age_s' => self::age('app.heartbeat'),
             'goodbye_age_s' => self::age('app.goodbye'),
         ]);

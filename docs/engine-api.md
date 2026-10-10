@@ -191,3 +191,29 @@ See *Job lifecycle*.
 The service listens on the loopback interface only. Optionally a shared secret can be required
 (`--token` / `HVSR_ENGINE_TOKEN`); Laravel sends it as `X-Engine-Token`. There is no user
 concept, no persistent state and no outbound network access.
+
+## Licensing (added in 1.1.0)
+
+HVSR Studio runs as a 14-day trial from first use on a computer; afterwards new calculations
+and exports need a signed licence file. Projects can always be opened, viewed and saved.
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/license` | status: `{state: licensed|trial|unlicensed, allowed, trial, message, machine_id, release_date, sales, trial_days, trial_info?, license?, license_problem?, reason?}` |
+| POST | `/license` (multipart `file`, ≤ 64 KB) | install a `.qlicense` file; same status dict on success, 422 `invalid_license` otherwise |
+
+Gated calls (`/hvsr/analyze`, `/processing/run`, `/processing/preview`, `/recordings/spectra`,
+`/exports/figure`, `/exports/report`, `/model/hvsr`) answer **402**
+`{"error": {"code": "license_required", "message": ...}, "license_required": true}` when neither
+the trial nor a licence is active. During the trial every figure carries a diagonal
+"HVSR Studio TRIAL" watermark, CSV/.hv exports start with a `# … TRIAL` line, the PDF report is
+watermarked on every page and `result.json` gains a `trial` quality flag.
+
+A licence file is JSON `{"license": {...}, "signature": "<base64 Ed25519>"}` signed with
+QuakeLogic's private key (never shipped); the service holds only the public key and verifies
+offline (`hvsr_service/ed25519.py`, RFC 8032). Licences are bound to Machine IDs
+(`SHA-256` of the OS machine GUID, shown as `XXXXX-XXXXX-XXXXX-XXXXX`), may carry an expiry
+date and a maintenance date (versions released after it are refused). The trial record
+(`<data>/license/trial.json`, mirrored in the Windows registry) is HMAC-protected and detects
+clock rollback. Licence files live in `<data>/license/license.qlicense`; a replaced licence is
+kept as `license-replaced-<stamp>.qlicense`. Issuing tool: `scripts/issue_license.py`.

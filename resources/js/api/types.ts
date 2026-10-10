@@ -28,6 +28,24 @@ export interface AppStatus {
     engine: EngineHealth;
     data_dir: string;
     theme_default?: string;
+    license?: { state: LicenseState | null; message: string | null; allowed: boolean } | null;
+}
+
+export type LicenseState = 'licensed' | 'trial' | 'unlicensed';
+
+export interface LicenseStatus {
+    state: LicenseState;
+    allowed: boolean;
+    trial: boolean;
+    message: string;
+    machine_id: string;
+    release_date: string;
+    sales: string;
+    trial_days: number;
+    trial_info?: { started: string | null; ends: string | null; days_left: number; rolled_back?: boolean; tampered?: boolean };
+    license?: { license_id: string; customer: string; contact?: string | null; edition: string; seats: number; issued?: string; maintenance_until?: string | null; expires?: string | null };
+    license_problem?: string;
+    reason?: string;
 }
 
 export interface Job {

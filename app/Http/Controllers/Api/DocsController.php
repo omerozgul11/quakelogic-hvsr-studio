@@ -16,6 +16,7 @@ class DocsController extends Controller
         'hvsr-algorithms' => ['path' => 'docs/hvsr-algorithms.md', 'title' => 'HVSR algorithms'],
         'validation' => ['path' => 'docs/validation.md', 'title' => 'Numerical validation'],
         'notices' => ['path' => 'THIRD_PARTY_NOTICES.md', 'title' => 'Third-party notices'],
+        'eula' => ['path' => 'docs/eula.md', 'title' => 'Licence agreement'],
     ];
 
     public function index(): array

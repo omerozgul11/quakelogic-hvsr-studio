@@ -11,11 +11,12 @@ from . import SERVICE_VERSION
 from .cache import RecordingCache
 from .errors import install_handlers
 from .jobs import JobManager
+from .licensing import Licensing, default_root
 from .routes import register
 from .security import configured_token, token_middleware
 
 
-def create_app(workers: int | None = None, token: str | None = None) -> FastAPI:
+def create_app(workers: int | None = None, token: str | None = None, license_root=None) -> FastAPI:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
     @asynccontextmanager
@@ -28,6 +29,8 @@ def create_app(workers: int | None = None, token: str | None = None) -> FastAPI:
     app.state.jobs = JobManager(max_workers=workers)
     app.state.cache = RecordingCache()
     app.state.token = configured_token(token)
+    from hvsr_engine.version import RELEASE_DATE
+    app.state.licensing = Licensing(license_root or default_root(), RELEASE_DATE)
     app.middleware("http")(token_middleware)
     install_handlers(app)
     register(app)

@@ -22,6 +22,7 @@ def data(req: DataRequest, request: Request):
 
 @router.post("/spectra", status_code=200)
 def spectra(req: SpectraRequest, request: Request):
+    request.app.state.licensing.require()
     rec = request.app.state.cache.load(req.path)
     params = req.model_dump()
     params.pop("path", None)

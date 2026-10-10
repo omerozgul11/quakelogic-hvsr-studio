@@ -275,7 +275,8 @@ def _peak_distribution_figure(result: dict, th: dict[str, str]):
 
 def figure(result: dict, figure: str, fmt: str, output_path: str, recording=None,
            theme: str = "light", window_curves: dict | None = None,
-           unit_system: str | None = None, units: str | None = None, unit_kind: str | None = None) -> str:
+           unit_system: str | None = None, units: str | None = None, unit_kind: str | None = None,
+           trial: bool = False) -> str:
     """Render one figure of ``result`` to ``output_path`` and return the path.
 
     figure: hvsr | spectra | windows | azimuthal | peak_distribution
@@ -298,4 +299,12 @@ def figure(result: dict, figure: str, fmt: str, output_path: str, recording=None
         fig = _peak_distribution_figure(result, th)
     else:
         raise ValueError(f"Unknown figure '{figure}'. Use one of {FIGURE_KINDS}.")
+    if trial:
+        trial_mark(fig)
     return _save(fig, fmt, output_path, th)
+
+
+def trial_mark(fig) -> None:
+    """Diagonal TRIAL watermark on figures produced during the evaluation period."""
+    fig.text(0.5, 0.5, "HVSR Studio TRIAL · evaluation only", ha="center", va="center", rotation=22,
+             fontsize=30, color="#e2561a", alpha=0.16, fontweight="bold")

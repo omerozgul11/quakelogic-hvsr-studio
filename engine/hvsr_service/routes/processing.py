@@ -9,6 +9,7 @@ router = APIRouter(prefix="/processing")
 
 @router.post("/preview", status_code=200)
 def preview(req: PreviewRequest, request: Request):
+    request.app.state.licensing.require()
     rec = request.app.state.cache.load(req.input_path)
     processed, warnings, applied = engine_api.apply_steps(rec, req.steps)
     kwargs = dict(t_start=req.t_start, t_end=req.t_end, max_points=req.max_points)
@@ -23,6 +24,7 @@ def preview(req: PreviewRequest, request: Request):
 
 @router.post("/run", status_code=200)
 def run(req: RunRequest, request: Request):
+    request.app.state.licensing.require()
     cache = request.app.state.cache
     input_path, output_path, steps = req.input_path, req.output_path, req.steps
     cache.load(input_path)  # raises 404 early if missing

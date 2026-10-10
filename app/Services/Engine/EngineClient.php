@@ -126,6 +126,24 @@ class EngineClient implements EngineClientInterface
         return $this->post('/curves/import', ['path' => $path], $this->computeTimeout);
     }
 
+    public function licenseStatus(): array
+    {
+        return $this->get('/license');
+    }
+
+    public function installLicense(string $path): array
+    {
+        try {
+            $response = $this->request($this->timeout)
+                ->attach('file', (string) file_get_contents($path), basename($path))
+                ->post('/license');
+
+            return $this->handle($response);
+        } catch (ConnectionException $e) {
+            throw new EngineUnavailableException($this->hint($e));
+        }
+    }
+
     private function request(int $timeout): PendingRequest
     {
         $req = Http::baseUrl($this->baseUrl)
@@ -173,6 +191,7 @@ class EngineClient implements EngineClientInterface
             (string) ($error['code'] ?? 'engine_error'),
             (string) ($error['message'] ?? ('Engine request failed with HTTP '.$response->status())),
             (array) ($error['details'] ?? []),
+            (bool) (is_array($json) ? ($json['license_required'] ?? false) : false) || $response->status() === 402,
         );
     }
 

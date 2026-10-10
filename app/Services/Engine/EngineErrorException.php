@@ -11,6 +11,7 @@ class EngineErrorException extends RuntimeException
         public readonly string $errorCode,
         string $message,
         public readonly array $details = [],
+        public readonly bool $licenseRequired = false,
     ) {
         parent::__construct($message);
     }

@@ -24,6 +24,7 @@ def _recording_for(request: Request, analysis_dir: str, explicit: str | None):
 
 @router.post("/figure", status_code=200)
 def figure(req: FigureRequest, request: Request):
+    trial = request.app.state.licensing.require()
     if not os.path.isfile(os.path.join(req.analysis_dir, "result.json")):
         raise FileNotFoundError(f"No result.json in analysis directory: {req.analysis_dir}")
     result = engine_api.load_result(req.analysis_dir)
@@ -35,12 +36,13 @@ def figure(req: FigureRequest, request: Request):
         except Exception:
             window_curves = None
     path = engine_api.figure(result, req.figure, req.format, req.output_path, recording=rec, theme=req.theme,
-                             window_curves=window_curves)
+                             window_curves=window_curves, trial=trial)
     return {"output_path": path}
 
 
 @router.post("/report", status_code=200)
 def report(req: ReportRequest, request: Request):
+    trial = request.app.state.licensing.require()
     if not os.path.isfile(os.path.join(req.analysis_dir, "result.json")):
         raise FileNotFoundError(f"No result.json in analysis directory: {req.analysis_dir}")
     body = req.model_dump()
@@ -50,7 +52,7 @@ def report(req: ReportRequest, request: Request):
         rec = _recording_for(request, body["analysis_dir"], body.get("recording_path"))
         job.report(0.05, "building report")
         path = engine_api.build_report(result, body["context"], body["output_path"], body["analysis_dir"],
-                                       recording=rec, progress=lambda f, m=None: job.report(0.05 + 0.9 * float(f), m))
+                                       recording=rec, progress=lambda f, m=None: job.report(0.05 + 0.9 * float(f), m), trial=trial)
         return {"output_path": path}
 
     job = request.app.state.jobs.submit("report", work, {"analysis_dir": req.analysis_dir, "output_path": req.output_path})

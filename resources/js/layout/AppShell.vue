@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import GuideWizard from '@/components/GuideWizard.vue';
+import LicenseRequiredDialog from '@/components/LicenseRequiredDialog.vue';
 import { useGuideStore } from '@/stores/guide';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
@@ -58,5 +59,6 @@ onMounted(() => guideStore.autoOpen());
         </div>
         <Toasts />
         <GuideWizard />
+        <LicenseRequiredDialog />
     </div>
 </template>

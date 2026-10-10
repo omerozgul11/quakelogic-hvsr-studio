@@ -47,4 +47,10 @@ interface EngineClientInterface
     public function modelHvsr(array $request): array;
 
     public function importCurve(string $path): array;
+
+    /** Licence / trial status of this installation (engine GET /license). */
+    public function licenseStatus(): array;
+
+    /** Install a signed .qlicense file (engine POST /license, multipart); 422 engine error when refused. */
+    public function installLicense(string $path): array;
 }

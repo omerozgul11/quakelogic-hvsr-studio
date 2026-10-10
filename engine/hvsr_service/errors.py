@@ -21,14 +21,19 @@ class ServiceError(Exception):
         self.details = details or {}
 
     def response(self) -> JSONResponse:
-        return JSONResponse(status_code=self.status,
-                            content={"error": {"code": self.code, "message": self.message, "details": self.details}})
+        content = {"error": {"code": self.code, "message": self.message, "details": self.details}}
+        if self.code == "license_required":
+            content["license_required"] = True
+        return JSONResponse(status_code=self.status, content=content)
 
 
 def translate_exception(exc: BaseException) -> ServiceError:
     """Map engine / builtin exceptions to the error envelope."""
     if isinstance(exc, ServiceError):
         return exc
+    from .licensing import LicenseRequired
+    if isinstance(exc, LicenseRequired):
+        return ServiceError("license_required", str(exc), 402, {"license_required": True})
     try:
         from hvsr_engine.errors import CancelledError, EngineError
     except Exception:  # pragma: no cover - engine missing

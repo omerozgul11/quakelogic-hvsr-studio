@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
-import { Moon, Sun, Monitor, PanelLeft, Settings, CircleHelp } from 'lucide-vue-next';
+import { Moon, Sun, Monitor, PanelLeft, Settings, CircleHelp, KeyRound } from 'lucide-vue-next';
+import { useLicenseStore } from '@/stores/license';
 import { useGuideStore } from '@/stores/guide';
 import { useAppStore } from '@/stores/app';
 import { useProjectStore } from '@/stores/project';
@@ -13,6 +14,8 @@ defineEmits<{ toggleNav: [] }>();
 const app = useAppStore();
 const project = useProjectStore();
 const guide = useGuideStore();
+const license = useLicenseStore();
+const licenseChip = computed(() => ({ ok: 'bg-ok-500/12 text-ok-500', warn: 'bg-warn-500/15 text-warn-500', bad: 'bg-bad-500/12 text-bad-500', neutral: 'bg-surface-2 text-muted' }[license.chipTone]));
 
 const pill = computed(() => {
     if (app.statusError) return { cls: 'bg-bad-500/12 text-bad-500', dot: 'bg-bad-500' };
@@ -42,6 +45,9 @@ const themeIcon = computed(() => (app.theme === 'light' ? Sun : app.theme === 'd
             <RouterLink :to="`/projects/${project.current.id}`" class="text-[13px] font-medium truncate max-w-72 rounded-md px-1.5 py-0.5 hover:bg-black/6 dark:hover:bg-white/10" title="Project overview">{{ project.current.name }}</RouterLink>
         </template>
         <div class="flex-1" />
+        <RouterLink v-if="license.chipLabel" to="/license" class="inline-flex items-center gap-1.5 rounded-full px-2.5 h-6 text-[11.5px] font-medium transition hover:brightness-95" :class="licenseChip" :title="license.status?.state === 'licensed' ? `Licensed to ${license.status?.license?.customer ?? ''}` : 'Open licence details'">
+            <KeyRound class="size-3.5" />{{ license.chipLabel }}
+        </RouterLink>
         <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 h-6 text-[11.5px] font-medium" :class="pill.cls" :title="app.status?.engine?.message ?? app.statusError ?? ''">
             <span class="size-1.5 rounded-full" :class="pill.dot" />{{ app.engineLabel }}
             <span v-if="app.status?.engine?.engine_version" class="num text-faint">v{{ app.status.engine.engine_version }}</span>

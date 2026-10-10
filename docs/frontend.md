@@ -124,3 +124,16 @@ npm run typecheck      # vue-tsc --noEmit
 * Compare page: "Load curve from file" (.hv/.csv) overlays external curves; Projects page: Backup (zip) and
   Restore from backup; import wizard accepts SAF (`inspect.format === 'saf'`, no mapping) and any
   ObsPy-readable trace file (`'seismic'`, handled like MiniSEED).
+
+
+## Licensing UI
+
+* `stores/license.ts` — status (`GET /api/license`), `install(file)` (`POST /api/license`), `requiredMessage`
+  (set by the 402 event), chip label/tone, `mailto` for licence requests.
+* `api/client.ts` — an HTTP 402 (or a payload with `license_required: true`) throws an `ApiError` whose
+  `licenseRequired` getter is true and dispatches `window` event `hvsr-license-required` with the message.
+* `components/LicenseRequiredDialog.vue` (mounted in `AppShell`) listens for that event and offers "Open License page".
+* `layout/TopBar.vue` — licence chip (KeyRound) next to the engine pill: Licensed / Trial · N days left / Licence
+  required → `/license`. `layout/Navigator.vue` — "License" entry between User manual and Settings.
+* `pages/License.vue` — state header, licence facts, Machine ID with Copy, Import licence file (`.qlicense`),
+  Request a licence (mailto), Licence agreement (`/manual?doc=eula`).

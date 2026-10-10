@@ -310,6 +310,28 @@ browser.
 Theme, default preset, and read-only information: data directory, engine address, engine and
 library versions, application version, third-party notices.
 
+### Licence and activation
+
+HVSR Studio runs as a full **14-day trial** from first use on a computer; figures, CSV
+exports and PDF reports made during the trial are marked TRIAL and are for evaluation only.
+To activate:
+
+1. Open **License** in the left navigator (or click the licence chip in the top bar). Copy the
+   **Machine ID** shown there (format `XXXXX-XXXXX-XXXXX-XXXXX`).
+2. Choose **Request a licence** (or email sales@quakelogic.net) with the Machine ID, your
+   company and the number of computers. QuakeLogic sends back a `.qlicense` file issued for
+   those computers.
+3. Import the file with **Import licence file**. Activation is immediate and works offline;
+   nothing is sent anywhere. The chip in the top bar changes to *Licensed*.
+
+A licence is perpetual for the versions it covers and includes updates released until its
+**maintenance date** ("Updates until" on the License page). Versions released after that date
+need renewed maintenance; versions released before it remain usable. Without an active trial
+or licence, projects can still be opened, viewed and saved; new calculations (preview, spectra,
+processing runs, analyses, modelling) and exports need a licence, and the application tells you
+so in a dialog. To move a licence to a replacement computer, contact QuakeLogic with both
+Machine IDs. The full **Licence agreement** is in the manual (*Licence agreement* tab).
+
 ## 12. Where your data lives, backups and reproducibility
 
 ```

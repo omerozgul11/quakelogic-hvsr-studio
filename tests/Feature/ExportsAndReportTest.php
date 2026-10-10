@@ -68,7 +68,7 @@ class ExportsAndReportTest extends TestCase
         $this->assertSame('queued', $created['job']['status']);
         $call = collect($this->engine->calls)->firstWhere('method', 'exportReport');
         $this->assertSame('ST1', $call['payload']['context']['station']['code']);
-        $this->assertSame('1.0.0', $call['payload']['context']['app_version']);
+        $this->assertSame(config('hvsr.app_version'), $call['payload']['context']['app_version']);
         $this->assertCount(1, $call['payload']['context']['source_files']);
         $this->assertSame(64, strlen($call['payload']['context']['source_files'][0]['sha256']));
 

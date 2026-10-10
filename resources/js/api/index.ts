@@ -3,10 +3,14 @@ import type {
     Analysis, AppStatus, Batch, CompareEntry, CreateAnalysisRequest, CreateRecordingRequest, DisplayData,
     ExportKind, FigureKind, FilterResponse, HvsrParams, Job, Preset, PreviewResult, ProcessingRun, Project,
     Recording, Settings, SpectraParams, SpectraResult, Station, Step, Upload, WindowCurves, WindowOverrides,
-    WindowsResult, ActivityEntry, Ulid, DocInfo, ModelRequest, ModelResponse, GroundModel, ImportedCurve, Survey, WindowSetExport, WindowImportResult, SamplesResponse,
+    WindowsResult, ActivityEntry, Ulid, DocInfo, ModelRequest, ModelResponse, GroundModel, ImportedCurve, Survey, WindowSetExport, WindowImportResult, SamplesResponse, LicenseStatus,
 } from './types';
 
 export const api = {
+    license: {
+        status: () => http.get<LicenseStatus>('/license'),
+        install: (file: File) => { const fd = new FormData(); fd.append('file', file, file.name); return http.post<LicenseStatus>('/license', fd); },
+    },
     docs: {
         list: () => http.get<DocInfo[]>('/docs'),
         get: async (key: string): Promise<string> => {

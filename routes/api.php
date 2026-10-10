@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CompareController;
 use App\Http\Controllers\Api\CurveController;
 use App\Http\Controllers\Api\DocsController;
 use App\Http\Controllers\Api\EngineController;
+use App\Http\Controllers\Api\LicenseController;
 use App\Http\Controllers\Api\PresetController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\RecordingController;
@@ -90,3 +91,6 @@ Route::post('/projects/{project}/compare', [CompareController::class, 'compare']
 
 Route::get('/docs', [DocsController::class, 'index']);
 Route::get('/docs/{doc}', [DocsController::class, 'show'])->where('doc', '[a-z0-9-]+');
+
+Route::get('/license', [LicenseController::class, 'status']);
+Route::post('/license', [LicenseController::class, 'install']);

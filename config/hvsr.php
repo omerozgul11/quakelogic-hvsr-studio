@@ -12,7 +12,7 @@ $resolve = static function (?string $path, string $default): string {
 $dataDir = $resolve(env('HVSR_DATA_DIR'), base_path('data'));
 
 return [
-    'app_version' => '1.0.0',
+    'app_version' => '1.1.0',
     'data_dir' => $dataDir,
     'projects_dir' => $dataDir.'/projects',
     'engine_url' => rtrim((string) env('HVSR_ENGINE_URL', 'http://127.0.0.1:8765'), '/'),

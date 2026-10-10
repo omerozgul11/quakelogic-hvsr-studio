@@ -18,6 +18,7 @@ def windows(req: WindowsRequest, request: Request):
 
 @router.post("/analyze", status_code=200)
 def analyze(req: AnalyzeRequest, request: Request):
+    trial = request.app.state.licensing.require()
     cache = request.app.state.cache
     cache.load(req.input_path)
     body = req.model_dump()
@@ -33,7 +34,7 @@ def analyze(req: AnalyzeRequest, request: Request):
         )
         job.report(0.93, "writing results")
         os.makedirs(body["output_dir"], exist_ok=True)
-        engine_api.write_result(result, body["output_dir"])
+        engine_api.write_result(result, body["output_dir"], trial=trial)
         result_dict = result.to_dict() if hasattr(result, "to_dict") else result
         return {"output_dir": body["output_dir"], "summary": summarize(result_dict)}
 

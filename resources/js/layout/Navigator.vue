@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import { FolderOpen, Upload, Waves, Grid2x2, BarChart3, Layers, FileText, Settings, BookOpen, ChevronRight, ChevronDown, Search, Plus, Cpu, AudioLines } from 'lucide-vue-next';
+import { FolderOpen, Upload, Waves, Grid2x2, BarChart3, Layers, FileText, Settings, BookOpen, KeyRound, ChevronRight, ChevronDown, Search, Plus, Cpu, AudioLines } from 'lucide-vue-next';
 import { useProjectStore } from '@/stores/project';
 import { useNavigation } from '@/composables/useNavigation';
 import StatusDot from '@/components/ui/StatusDot.vue';
@@ -40,6 +40,7 @@ const groups = computed<Group[]>(() => [
 ]);
 const bottom: Item[] = [
     { key: 'manual', label: 'User manual', icon: BookOpen, to: '/manual', enabled: true },
+    { key: 'license', label: 'License', icon: KeyRound, to: '/license', enabled: true },
     { key: 'settings', label: 'Settings', icon: Settings, to: '/settings', enabled: true },
 ];
 

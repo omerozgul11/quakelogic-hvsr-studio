@@ -99,7 +99,7 @@ async function save() {
                 </Panel>
 
                 <Panel title="Help">
-                    <p class="text-[12.5px] text-muted">The <RouterLink to="/manual" class="underline text-ui">User manual</RouterLink> section holds the complete documentation, and the <strong>?</strong> button in the top bar opens the step-by-step guided workflow.</p>
+                    <p class="text-[12.5px] text-muted">The <RouterLink to="/manual" class="underline text-ui">User manual</RouterLink> section holds the complete documentation, and the <strong>?</strong> button in the top bar opens the step-by-step guided workflow. Licence status, your Machine ID and licence-file import are on the <RouterLink to="/license" class="underline text-ui">License</RouterLink> page.</p>
                     <div class="mt-3 flex flex-wrap gap-2">
                         <Button size="sm" @click="guide.show(0)">Open the guided workflow</Button>
                         <Button size="sm" @click="guide.dismiss(false)" :disabled="!guide.dismissed">Show it automatically again</Button>

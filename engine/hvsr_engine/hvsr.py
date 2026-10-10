@@ -479,7 +479,19 @@ def _curve_dict(agg: dict) -> dict:
 # Persistence & exports
 # --------------------------------------------------------------------------------------
 
-def write_result(result: HvsrResult, output_dir: str | Path) -> dict:
+TRIAL_NOTICE = "# QuakeLogic HVSR Studio TRIAL - evaluation only"
+
+
+def mark_trial_exports(out: Path) -> None:
+    """Prepend the TRIAL notice to every CSV / .hv export of an analysis made during the trial."""
+    for path in (out / "exports").glob("*"):
+        if path.suffix.lower() in (".csv", ".hv"):
+            text = path.read_text(encoding="utf-8")
+            if not text.startswith(TRIAL_NOTICE):
+                path.write_text(TRIAL_NOTICE + "\n" + text, encoding="utf-8")
+
+
+def write_result(result: HvsrResult, output_dir: str | Path, trial: bool = False) -> dict:
     out = Path(output_dir)
     (out / "exports").mkdir(parents=True, exist_ok=True)
     data = result.to_dict()
@@ -489,6 +501,11 @@ def write_result(result: HvsrResult, output_dir: str | Path) -> dict:
                         accepted=result.accepted,
                         azimuthal=result.azimuthal_matrix if result.azimuthal_matrix is not None else np.zeros((0, 0)))
     write_exports(data, out)
+    if trial:
+        data.setdefault("quality_flags", []).append({"code": "trial", "severity": "info", "message": "Computed during the HVSR Studio trial - evaluation only."})
+        with open(out / "result.json", "w", encoding="utf-8") as fh:
+            json.dump(data, fh, indent=1, allow_nan=False)
+        mark_trial_exports(out)
     return data
 
 

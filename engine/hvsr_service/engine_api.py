@@ -63,8 +63,8 @@ def analyze(rec, params: dict, **kwargs):
     return _mod("hvsr").analyze(rec, params, **kwargs)
 
 
-def write_result(result, output_dir: str):
-    return _mod("hvsr").write_result(result, output_dir)
+def write_result(result, output_dir: str, **kwargs) -> dict:
+    return _mod("hvsr").write_result(result, output_dir, **kwargs)
 
 
 def load_result(output_dir: str) -> dict:

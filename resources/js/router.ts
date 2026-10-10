@@ -14,6 +14,7 @@ export const router = createRouter({
         { path: '/recordings/:r/hvsr', name: 'hvsr-new', component: () => import('./pages/HvsrAnalysis.vue'), meta: { section: 'hvsr', title: 'HVSR analysis' } },
         { path: '/analyses/:a', name: 'analysis', component: () => import('./pages/HvsrAnalysis.vue'), meta: { section: 'hvsr', title: 'HVSR analysis' } },
         { path: '/manual', name: 'manual', component: () => import('./pages/Manual.vue'), meta: { section: 'manual', title: 'User manual' } },
+        { path: '/license', name: 'license', component: () => import('./pages/License.vue'), meta: { section: 'license', title: 'License' } },
         { path: '/settings', name: 'settings', component: () => import('./pages/Settings.vue'), meta: { section: 'settings', title: 'Settings' } },
         { path: '/:pathMatch(.*)*', redirect: '/projects' },
     ],

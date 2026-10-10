@@ -3,7 +3,9 @@ from __future__ import annotations
 
 import platform
 
-ENGINE_VERSION = "1.0.0"
+ENGINE_VERSION = "1.1.0"
+# Release date of this version: licences include updates released up to their maintenance date.
+RELEASE_DATE = "2026-10-10"
 
 
 def versions() -> dict:

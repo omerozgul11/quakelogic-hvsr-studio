@@ -81,7 +81,7 @@ export const useGuideStore = defineStore('guide', () => {
             {
                 key: 'report', title: 'Export results and the PDF report',
                 summary: 'Download CSV/JSON exports, figures and the PDF report with metadata, settings, window statistics, peaks, SESAME table and limitations.',
-                tips: ['The configuration JSON reproduces the analysis; "Re-run" repeats it with the stored seed.', 'All exports are written into the analysis folder and work offline.'],
+                tips: ['The configuration JSON reproduces the analysis; "Re-run" repeats it with the stored seed.', 'All exports are written into the analysis folder and work offline.', 'Calculations and exports need an active trial or licence; see the License page for your Machine ID.'],
                 route: pid ? `/projects/${pid}/reports` : null, routeLabel: 'Open reports & exports', blocked: pid ? null : 'Create or open a project first.', done: reported, optional: false, docAnchor: '10-reports-and-exports',
             },
             {

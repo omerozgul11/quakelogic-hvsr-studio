@@ -42,12 +42,17 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (EngineErrorException $e, Request $request) {
             $status = $e->status >= 400 && $e->status < 600 ? $e->status : 502;
-
-            return response()->json([
+            $body = [
                 'message' => $e->getMessage(),
                 'code' => $e->errorCode,
                 'details' => $e->details,
-            ], $status);
+            ];
+            if ($e->licenseRequired || $status === 402) {
+                $body['license_required'] = true;
+                $status = 402;
+            }
+
+            return response()->json($body, $status);
         });
 
         $exceptions->render(function (EngineUnavailableException $e, Request $request) {
